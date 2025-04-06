@@ -1,14 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-
-function App() {
-    return (
-        <div>
-            <h1>Hello, world!</h1>
-        </div>
-    );
-}
-
-// Sử dụng createRoot() thay vì render()
+import App from '../src/app.js';
+import GlobalStyles from './components/GlobalStyles/index.js';
+import './components/GlobalStyles/GlobalStyles.scss';
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
+
+root.render(
+    <React.StrictMode>
+        <GlobalStyles>
+            <App />
+        </GlobalStyles>
+    </React.StrictMode>
+);
