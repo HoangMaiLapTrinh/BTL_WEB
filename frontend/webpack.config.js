@@ -9,7 +9,8 @@ export default {
   entry: "./src/index.js",
   output: {
     path: path.resolve(__dirname, "build"),
-    filename: "bundle.js"
+    filename: "bundle.js",
+    publicPath: "/", // 👈 Cần cho React Router hoạt động đúng
   },
   module: {
     rules: [
@@ -24,11 +25,7 @@ export default {
       },
       {
         test: /\.scss$/i,
-        use: [
-          'style-loader',
-          'css-loader',
-          'sass-loader',
-        ],
+        use: ["style-loader", "css-loader", "sass-loader"]
       }
     ]
   },
@@ -36,5 +33,12 @@ export default {
     new HtmlWebpackPlugin({
       template: "./public/index.html"
     })
-  ]
+  ],
+  devServer: {
+    static: {
+      directory: path.resolve(__dirname, "build"),
+    },
+    port: 8080,
+    historyApiFallback: true,
+  }
 };
