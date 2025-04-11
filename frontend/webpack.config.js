@@ -10,29 +10,43 @@ export default {
   output: {
     path: path.resolve(__dirname, "build"),
     filename: "bundle.js",
-    publicPath: "/", // 👈 Cần cho React Router hoạt động đúng
+    publicPath: "/",
   },
   module: {
     rules: [
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        use: ["babel-loader"]
+        use: ["babel-loader"],
       },
       {
         test: /\.css$/,
-        use: ["style-loader", "css-loader"]
+        use: ["style-loader", "css-loader"],
       },
       {
-        test: /\.scss$/i,
-        use: ["style-loader", "css-loader", "sass-loader"]
-      }
-    ]
+        test: /\.module\.scss$/,
+        use: [
+          "style-loader",
+          {
+            loader: "css-loader",
+            options: {
+              modules: true,
+            },
+          },
+          "sass-loader",
+        ],
+      },
+      {
+        test: /\.scss$/,
+        exclude: /\.module\.scss$/,
+        use: ["style-loader", "css-loader", "sass-loader"],
+      },
+    ],
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: "./public/index.html"
-    })
+      template: "./public/index.html",
+    }),
   ],
   devServer: {
     static: {
@@ -40,5 +54,5 @@ export default {
     },
     port: 8080,
     historyApiFallback: true,
-  }
+  },
 };
