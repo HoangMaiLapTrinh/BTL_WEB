@@ -1,86 +1,177 @@
 .wrapper {
     width: 100%;
-    height: 100px;
+    height: auto;
     position: fixed;
     top: 0;
-    z-index: 100;
-    background: #ecf0f1;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-}
-
-.nav {
+    left: 0;
+    right: 0;
+    background-color: #ecf0f1;
+    transition: all 0.5s ease-in-out;
+    z-index: 10;
+  
+    &.sticky {
+      background-color: #bdc3c7;
+      opacity: 0.9;
+  
+      .nav-link {
+        color: #576574;
+  
+        span {
+          color: #ecf0f1;
+        }
+      }
+    }
+  }
+  
+  .nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    max-width: 1200px;
-    margin: 0 auto;
-    height: 100%;
-    position: relative;
-}
-
-.nav-left, .nav-right {
-    flex: 1;
-}
-
-.logo {
-    flex: 0 0 auto;
-    text-align: center;
-}
-
-.logo_rmbg {
-    height: auto;
-    width: 20%;
-}
-
-.main-menu {
+  }
+  
+  .main-menu {
     display: flex;
     list-style: none;
-    padding: 0;
     margin: 0;
-}
-
-.nav-item {
+    padding: 0;
+  
+    li {
+      padding-top: 10px;
+  
+      a {
+        font-weight: bold;
+        text-decoration: none;
+        font-size: 14px;
+        color: #bdc3c7;
+        padding: 15px 20px;
+        display: block;
+        position: relative;
+  
+        &::before {
+          content: "";
+          height: 4px;
+          width: 0;
+          background: #2c3e50;
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          transition: 0.25s cubic-bezier(0.075, 0.82, 0.165, 1);
+        }
+  
+        &:hover {
+          color: #2c3e50;
+  
+          &::before {
+            width: 100%;
+          }
+        }
+  
+        span {
+          color: #bdc3c7;
+        }
+      }
+    }
+  }
+  
+  .nav-left,
+  .nav-right {
+    display: flex;
+    align-items: center;
+  }
+  
+  .logo {
+    text-align: center;
+  
+    img.logo_rmbg {
+      max-width: 200px;
+      height: auto;
+      padding: 15px;
+    }
+  }
+  
+  .btn-dtl {
+    display: block;
+    width: 150px;
+    height: 30px;
+    line-height: 30px;
+    color: #333;
+    border: 2px solid #333;
+    letter-spacing: 2px;
+    text-align: center;
     position: relative;
-}
-
-.nav-link {
-    display: block;
-    padding: 15px 20px;
-    cursor: pointer;
-    font-weight: bold;
-    color: #576574;
-    transition: color 0.3s;
-}
-
-.nav-link:hover {
-    color: #2c3e50;
-}
-
-.dropdown-menu {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    display: none;
-    min-width: 160px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    z-index: 999;
-}
-
-.dropdown:hover .dropdown-menu {
-    display: block;
-}
-
-.dropdown-item {
-    display: block;
-    padding: 10px 20px;
-    color: #212529;
-    text-decoration: none;
-}
-
-.dropdown-item:hover {
-    background-color: #f8f9fa;
-    color: #2c3e50;
-}
+    transition: all 0.25s;
+    border-radius: 20px;
+  
+    span {
+      position: relative;
+      z-index: 2;
+    }
+  
+    &::after {
+      position: absolute;
+      content: "";
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 100%;
+      border-radius: 20px;
+      background: #2c3e50;
+      transition: all 0.3s;
+      z-index: 1;
+    }
+  
+    &:hover {
+      color: #fff;
+  
+      &::after {
+        width: 100%;
+      }
+    }
+  }
+  
+  .dropdown {
+    position: relative;
+  
+    &-toggle {
+      cursor: pointer;
+  
+      &::after {
+        content: "";
+        display: inline-block;
+        margin-left: 0.255em;
+        vertical-align: 0.255em;
+        border-top: 0.3em solid;
+        border-right: 0.3em solid transparent;
+        border-bottom: 0;
+        border-left: 0.3em solid transparent;
+      }
+    }
+  
+    &-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      display: none;
+      min-width: 10rem;
+      background-color: #fff;
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      border-radius: 0.25rem;
+      z-index: 1000;
+  
+      &.show {
+        display: block;
+      }
+    }
+  
+    &-item {
+      padding: 0.25rem 1.5rem;
+      white-space: nowrap;
+      color: #212529;
+      text-decoration: none;
+  
+      &:hover {
+        background-color: #f8f9fa;
+      }
+    }
+  }
+  
