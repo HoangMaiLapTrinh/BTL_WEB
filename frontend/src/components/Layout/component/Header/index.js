@@ -1,32 +1,22 @@
 import classNames from 'classnames/bind';
 import * as styles from './Header.module.scss';
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import logo_rmbg from '../../../../img/logo-rmbg.png';
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import header from './header.js'; // Import logic từ header.js
+import { useHeaderLogic } from './header.js';
+
 const cx = classNames.bind(styles);
 
 function Header() {
-    const [user, setUser] = useState(null);
-    const [cartCount, setCartCount] = useState(0);
-    const navigate = useNavigate();
-
-    // Load user khi component mount
-    useEffect(() => {
-        const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
-        setUser(loggedInUser);
-
-        const cart = JSON.parse(localStorage.getItem("cart")) || [];
-        setCartCount(cart.length);
-    }, []);
-
-    const handleLogout = () => {
-        localStorage.removeItem("loggedInUser");
-        setUser(null);
-        navigate("/"); // Redirect về trang chủ sau khi đăng xuất
-    };
-
+    const {
+        user,
+        cartCount,
+        isBrandDropdownOpen,
+        toggleBrandDropdown,
+        handleLogout
+    } = useHeaderLogic();
+    
     return (
         <header className={cx('wrapper')}>
             <div className={cx('nav')}>
@@ -37,15 +27,15 @@ function Header() {
                         </li>
                         <li className={cx('nav-item', 'dropdown')}>
                             <span className={cx('nav-link', 'dropdown-toggle')}>THƯƠNG HIỆU</span>
-                            <div className={cx('dropdown-menu')}>
-                                <Link className={cx('dropdown-item')} to="/product?brand=casio">Casio</Link>
-                                <Link className={cx('dropdown-item')} to="/product?brand=pierre-nannier">Pierre nannier</Link>
-                                <Link className={cx('dropdown-item')} to="/product?brand=tudor">Tudor</Link>
-                                <Link className={cx('dropdown-item')} to="/product?brand=tissot">Tissot</Link>
-                                <Link className={cx('dropdown-item')} to="/product?brand=g-shock">G-shock</Link>
-                                <Link className={cx('dropdown-item')} to="/product?brand=orient">Orient</Link>
-                                <Link className={cx('dropdown-item')} to="/product?brand=citizen">Citizen</Link>
-                            </div>
+                                <div className={cx('dropdown-menu')}>
+                                    <Link className={cx('dropdown-item')} to="/product?brand=Gucci">Gucci</Link>
+                                    <Link className={cx('dropdown-item')} to="/product?brand=Louis Vuitton">Louis Vuitton</Link>
+                                    <Link className={cx('dropdown-item')} to="/product?brand=Prada">Prada</Link>
+                                    <Link className={cx('dropdown-item')} to="/product?brand=Dior">Dior</Link>
+                                    <Link className={cx('dropdown-item')} to="/product?brand=Balenciaga">Balenciaga</Link>
+                                    <Link className={cx('dropdown-item')} to="/product?brand=Nike">Nike</Link>
+                                    <Link className={cx('dropdown-item')} to="/product?brand=Adidas">Adidas</Link>
+                                </div>
                         </li>
                         <li className={cx('nav-item')}>
                             <Link to="/men" className={cx('nav-link')}>ĐỒ NAM</Link>
@@ -63,26 +53,23 @@ function Header() {
                 <div className={cx('nav-right')}>
                     <ul className={cx('main-menu')}>
                         <li className={cx('nav-item')}>
-                            <Link to="/infomation" className={cx('nav-link')}>LIÊN HỆ</Link>
+                            <Link to="/info" className={cx('nav-link')}>LIÊN HỆ</Link>
                         </li>
 
-                        {/* Hiển thị nếu người dùng chưa đăng nhập */}
                         {!user ? (
                             <li className={cx('nav-item')}>
                                 <div className={cx('auth-buttons')}>
                                     <Link to="/login" className={cx('btn-dtl')}>
                                         <i className="fas fa-sign-in-alt" style={{ marginRight: '5px' }}></i>
-                                        <span>ĐĂNG NHẬP</span>
+                                        <span className={cx('btn-text')}>ĐĂNG NHẬP</span>
                                     </Link>
-                                    <span style={{ padding: '0 5px', fontSize: '20px' }}>|</span>
-                                    <Link to="/register" className={cx('btn-dtl')}>
+                                    <Link to="/login" className={cx('btn-dtl')}>
                                         <i className="fas fa-user-plus" style={{ marginRight: '5px' }}></i>
                                         <span>ĐĂNG KÝ</span>
                                     </Link>
                                 </div>
                             </li>
                         ) : (
-                            // Hiển thị khi người dùng đã đăng nhập
                             <li className={cx('nav-item', 'dropdown')}>
                                 <span className={cx('nav-link', 'dropdown-toggle')}>
                                     <i className="fas fa-user-circle" style={{ marginRight: '5px' }}></i>

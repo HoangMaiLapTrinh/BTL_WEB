@@ -1,0 +1,15 @@
+.home-container {
+    background-color: var(--background-color);
+    padding: 2rem;
+    text-align: center;
+    font-family: inherit;
+    min-height: calc(100vh - 80px);
+    margin-top: 80px;
+}
+  
+.home-container h1 {
+    color: var(--text-color);
+    font-size: 2.4rem;
+    margin-bottom: 2rem;
+}
+  

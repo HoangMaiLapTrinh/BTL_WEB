@@ -1,56 +1,35 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import styles from './Header.module.scss'; // nếu dùng SCSS Module
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const Header = () => {
-  const [user, setUser] = useState(null);
-  const [cartCount, setCartCount] = useState(0);
-  const navigate = useNavigate();
+export function useHeaderLogic() {
+    const [user, setUser] = useState(null);
+    const [cartCount, setCartCount] = useState(0);
+    const [isBrandDropdownOpen, setIsBrandDropdownOpen] = useState(false);
+    const navigate = useNavigate();
 
-  // Load user khi component mount
-  useEffect(() => {
-    const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
-    setUser(loggedInUser);
+    useEffect(() => {
+        const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+        setUser(loggedInUser);
 
-    const cart = JSON.parse(localStorage.getItem("cart")) || [];
-    setCartCount(cart.length);
-  }, []);
+        const cart = JSON.parse(localStorage.getItem("cart")) || [];
+        setCartCount(cart.length);
+    }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("loggedInUser");
-    setUser(null);
-    navigate("/");
-  };
+    const handleLogout = () => {
+        localStorage.removeItem("loggedInUser");
+        setUser(null);
+        navigate("/");
+    };
 
-  return (
-    <header className={styles.header}>
-      <div className={styles.logo}>
-        <Link to="/">🏪 MyShop</Link>
-      </div>
+    const toggleBrandDropdown = () => {
+        setIsBrandDropdownOpen(prev => !prev);
+    };
 
-      <nav className={styles.nav}>
-        <Link to="/products">Sản phẩm</Link>
-        <Link to="/brands">Thương hiệu</Link>
-      </nav>
-
-      <div className={styles.userActions}>
-        {user ? (
-          <div className={styles.account}>
-            <span>Xin chào, <strong>{user.email}</strong></span>
-            <button onClick={handleLogout}>Đăng xuất</button>
-          </div>
-        ) : (
-          <div className={styles.authLinks}>
-            <Link to="/login">Đăng nhập</Link> | <Link to="/register">Đăng ký</Link>
-          </div>
-        )}
-
-        <Link to="/cart" className={styles.cart}>
-          🛒 <span>{cartCount}</span>
-        </Link>
-      </div>
-    </header>
-  );
-};
-
-export default Header;
+    return {
+        user,
+        cartCount,
+        isBrandDropdownOpen,
+        toggleBrandDropdown,
+        handleLogout
+    };
+}
