@@ -5,6 +5,7 @@ import LoginAndRegister from '../pages/LoginandRegister/index.js';
 import Info from '../pages/Info/index.js';
 import Checkout from '../pages/Checkout/index.js';
 
+
 const publicRoutes = [
     { path: '/', component: Home },
     { path: '/products', component: Product },
@@ -13,7 +14,7 @@ const publicRoutes = [
 ]
 
 const privateRoutes = [
-    { path: '/cart', component: Cart, layout: null },
+    { path: '/cart', component: Cart},
     { path: '/checkout', component: Checkout },
 ]
 

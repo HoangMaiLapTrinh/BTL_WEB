@@ -1,16 +1,18 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import * as styles from './Home.module.scss';
 import classNames from 'classnames/bind';
+import styles from './Home.module.scss';
 
 const cx = classNames.bind(styles);
 
-const Home = () => {
-  return (
-    <div className={cx('home-container')}>
-      <h1>Welcome to Home Page</h1>
-    </div>
-  );
-};
+function Home() {
+    return (
+        <div className={cx('wrapper')}>
+            <div className={cx('container')}>
+                <h1>Trang chủ</h1>
+            </div>
+        </div>
+    );
+}
 
 export default Home;
+
