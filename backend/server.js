@@ -7,8 +7,11 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(cors());
 app.use(cookieParser());
+app.use(cors({
+    origin: 'http://localhost:8080', // URL của frontend
+    credentials: true // Cho phép gửi cookies
+}));
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
@@ -16,7 +19,7 @@ mongoose.connect(process.env.MONGODB_URI, {
     useUnifiedTopology: true
 })
 .then(() => console.log('MongoDB Connected'))
-.catch(err => console.log(err));
+.catch(err => console.log('MongoDB Connection Error:', err));
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));

@@ -4,18 +4,17 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import logo_rmbg from '../../../../img/logo-rmbg.png';
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import { useHeaderLogic } from './header.js';
+import { useAuth } from '../../../../context/AuthContext.js';
 
 const cx = classNames.bind(styles);
 
 function Header() {
-    const {
-        user,
-        cartCount,
-        isBrandDropdownOpen,
-        toggleBrandDropdown,
-        handleLogout
-    } = useHeaderLogic();
+    const { user, logout } = useAuth();
+    const [cartCount, setCartCount] = React.useState(0);
+    
+    const handleLogout = () => {
+        logout();
+    };
     
     return (
         <header className={cx('wrapper')}>
@@ -63,7 +62,7 @@ function Header() {
                                         <i className="fas fa-sign-in-alt" style={{ marginRight: '5px' }}></i>
                                         <span className={cx('btn-text')}>ĐĂNG NHẬP</span>
                                     </Link>
-                                    <Link to="/login" className={cx('btn-dtl')}>
+                                    <Link to="/login?action=register" className={cx('btn-dtl')}>
                                         <i className="fas fa-user-plus" style={{ marginRight: '5px' }}></i>
                                         <span>ĐĂNG KÝ</span>
                                     </Link>
