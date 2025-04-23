@@ -7,6 +7,7 @@ import { register, login } from '../../services/authService.js';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.js';
 import { showToast } from '../../components/Toast/index.js';
+import bcrypt from 'bcryptjs';
 
 const cx = classNames.bind(styles);
 
@@ -89,7 +90,11 @@ function LoginAndRegister() {
           duration: 3000
         });
         authLogin(response.user);
-        navigate('/');
+        if (response.user.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
       }
     } catch (error) {
       setError(error.message || 'Đăng nhập thất bại');
