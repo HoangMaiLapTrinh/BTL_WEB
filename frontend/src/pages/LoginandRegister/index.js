@@ -53,16 +53,15 @@ function LoginAndRegister() {
           duration: 3000
         });
         setError('');
-        // Reset form data
-        setFormData({
-          name: '',
-          email: '',
-          password: ''
-        });
-        // Chuyển sang form đăng nhập sau 2 giây
-        setTimeout(() => {
-          toggleToSignIn();
-        }, 2000);
+        // Đăng nhập ngay sau khi đăng ký
+        authLogin(response.user, response.token);
+        
+        // Chuyển hướng người dùng
+        if (response.user.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
       }
     } catch (error) {
       setError(error.message || 'Đăng ký thất bại');
@@ -89,7 +88,7 @@ function LoginAndRegister() {
           type: "success",
           duration: 3000
         });
-        authLogin(response.user);
+        authLogin(response.user, response.token);
         if (response.user.role === 'admin') {
           navigate('/admin');
         } else {

@@ -3,14 +3,28 @@ const Product = require('../models/Product');
 // Tạo sản phẩm mới
 exports.createProduct = async (req, res) => {
     try {
-        req.body.seller = req.user.id;
+        console.log('Creating product...');
+        console.log('Headers:', req.headers);
+        console.log('Cookies:', req.cookies);
+        console.log('User:', req.user);
+        console.log('Request body:', req.body);
+        
+        // Đảm bảo rằng có seller
+        if (!req.body.seller && req.user) {
+            req.body.seller = req.user.id;
+        } else if (!req.body.seller) {
+            req.body.seller = "unknown"; // Giá trị mặc định nếu không có seller
+        }
+        
         const product = await Product.create(req.body);
+        console.log('Product created successfully:', product);
 
         res.status(201).json({
             success: true,
             product
         });
     } catch (error) {
+        console.error('Error creating product:', error);
         res.status(500).json({
             success: false,
             message: error.message
@@ -101,7 +115,7 @@ exports.deleteProduct = async (req, res) => {
             });
         }
 
-        await product.remove();
+        await Product.findByIdAndDelete(req.params.id);
 
         res.status(200).json({
             success: true,

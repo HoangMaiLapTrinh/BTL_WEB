@@ -2,18 +2,24 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import classNames from 'classnames/bind';
 import * as styles from './Admin.module.scss';
+import { API_URL } from '../../services/authService.js';
+import { useAuth } from '../../context/AuthContext.js';
 
 const cx = classNames.bind(styles);
 
 function Admin() {
+    const { token } = useAuth();
     const [activeTab, setActiveTab] = useState('dashboard');
     const [invoices, setInvoices] = useState([]);
     const [products, setProducts] = useState([]);
     const [newProduct, setNewProduct] = useState({
         code: '',
         name: '',
-        img: '',
+        images: [],
         price: 0,
+        description: '',
+        stock: 10,
+        category: '6418b95ee7644b19ba04ff83',
         brand: '',
         xuatXu: '',
         gioiTinh: '',
@@ -26,7 +32,7 @@ function Admin() {
 
     useEffect(() => {
         if (activeTab === 'invoices') {
-            axios.get('/api/admin/orders')
+            axios.get(`${API_URL}/orders/admin`, { withCredentials: true })
                 .then(response => {
                     if (response.data.success) {
                         setInvoices(response.data.orders);
@@ -36,7 +42,7 @@ function Admin() {
                     console.error('Lỗi khi lấy hóa đơn:', error);
                 });
         } else if (activeTab === 'products') {
-            axios.get('/api/admin/products')
+            axios.get(`${API_URL}/products/products`, { withCredentials: true })
                 .then(response => {
                     if (response.data.success) {
                         setProducts(response.data.products);
@@ -53,40 +59,79 @@ function Admin() {
     };
 
     const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setNewProduct({ ...newProduct, img: reader.result });
-            };
-            reader.readAsDataURL(file);
-        }
+        const files = Array.from(e.target.files);
+        const imagePromises = files.map(file => {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    resolve({ url: reader.result });
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        });
+
+        Promise.all(imagePromises)
+            .then(images => {
+                setNewProduct({ ...newProduct, images });
+            })
+            .catch(error => console.error('Lỗi khi xử lý ảnh:', error));
     };
 
     const handleSaveProduct = () => {
-        axios.post('/api/admin/product/new', newProduct)
-            .then(response => {
-                if (response.data.success) {
-                    setProducts([...products, response.data.product]);
-                    setShowAddForm(false);
-                    setNewProduct({
-                        code: '',
-                        name: '',
-                        img: '',
-                        price: 0,
-                        brand: '',
-                        xuatXu: '',
-                        gioiTinh: '',
-                        mauSac: '',
-                        kieuDang: '',
-                        chatLieu: '',
-                        size: ''
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Lỗi khi thêm sản phẩm:', error);
-            });
+        const productData = {
+            name: newProduct.name,
+            price: newProduct.price,
+            description: newProduct.description || `Mô tả sản phẩm ${newProduct.name}`,
+            images: newProduct.images || [{ url: 'https://via.placeholder.com/150' }],
+            category: newProduct.category || '6418b95ee7644b19ba04ff83',
+            stock: newProduct.stock || 10,
+            brand: newProduct.brand,
+            xuatXu: newProduct.xuatXu,
+            gioiTinh: newProduct.gioiTinh,
+            mauSac: newProduct.mauSac,
+            kieuDang: newProduct.kieuDang,
+            chatLieu: newProduct.chatLieu,
+            size: newProduct.size
+        };
+
+        console.log('Gửi dữ liệu sản phẩm:', productData);
+
+        axios.post(`${API_URL}/products/product/new`, productData, { 
+            withCredentials: true,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        .then(response => {
+            if (response.data.success) {
+                setProducts([...products, response.data.product]);
+                setShowAddForm(false);
+                setNewProduct({
+                    code: '',
+                    name: '',
+                    images: [],
+                    price: 0,
+                    description: '',
+                    stock: 10,
+                    category: '',
+                    brand: '',
+                    xuatXu: '',
+                    gioiTinh: '',
+                    mauSac: '',
+                    kieuDang: '',
+                    chatLieu: '',
+                    size: ''
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Lỗi khi thêm sản phẩm:', error);
+            if (error.response) {
+                console.error('Dữ liệu phản hồi:', error.response.data);
+            }
+        });
     };
 
     const handleEditProduct = (productId) => {
@@ -94,7 +139,7 @@ function Admin() {
     };
 
     const handleDeleteProduct = (productId) => {
-        axios.delete(`/api/admin/product/${productId}`)
+        axios.delete(`${API_URL}/products/product/${productId}`, { withCredentials: true })
             .then(response => {
                 if (response.data.success) {
                     setProducts(products.filter(product => product._id !== productId));
@@ -134,8 +179,11 @@ function Admin() {
                                 <h3>Thêm sản phẩm mới</h3>
                                 <input type="text" placeholder="Mã sản phẩm" value={newProduct.code} onChange={(e) => setNewProduct({...newProduct, code: e.target.value})} />
                                 <input type="text" placeholder="Tên sản phẩm" value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
-                                <input type="file" accept="image/*" onChange={handleImageChange} />
+                                <textarea placeholder="Mô tả sản phẩm" value={newProduct.description} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} />
+                                <input type="file" multiple accept="image/*" onChange={handleImageChange} />
                                 <input type="number" placeholder="Giá" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: parseFloat(e.target.value)})} />
+                                <input type="number" placeholder="Số lượng" value={newProduct.stock} onChange={(e) => setNewProduct({...newProduct, stock: parseInt(e.target.value)})} />
+                                <input type="text" placeholder="Danh mục" value={newProduct.category} onChange={(e) => setNewProduct({...newProduct, category: e.target.value})} />
                                 <input type="text" placeholder="Thương hiệu" value={newProduct.brand} onChange={(e) => setNewProduct({...newProduct, brand: e.target.value})} />
                                 <input type="text" placeholder="Xuất xứ" value={newProduct.xuatXu} onChange={(e) => setNewProduct({...newProduct, xuatXu: e.target.value})} />
                                 <input type="text" placeholder="Giới tính" value={newProduct.gioiTinh} onChange={(e) => setNewProduct({...newProduct, gioiTinh: e.target.value})} />

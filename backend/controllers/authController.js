@@ -23,11 +23,19 @@ exports.register = async (req, res) => {
 
         const token = user.getJwtToken();
 
-        res.status(201).json({
-            success: true,
-            token,
-            user
-        });
+        // Thiết lập cookie
+        const options = {
+            expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000 || 7 * 24 * 60 * 60 * 1000),
+            httpOnly: true
+        };
+
+        res.status(201)
+            .cookie('token', token, options)
+            .json({
+                success: true,
+                token,
+                user
+            });
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -68,11 +76,19 @@ exports.login = async (req, res) => {
 
         const token = user.getJwtToken();
 
-        res.status(200).json({
-            success: true,
-            token,
-            user
-        });
+        // Thiết lập cookie
+        const options = {
+            expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000 || 7 * 24 * 60 * 60 * 1000),
+            httpOnly: true
+        };
+
+        res.status(200)
+            .cookie('token', token, options)
+            .json({
+                success: true,
+                token,
+                user
+            });
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -125,6 +141,11 @@ exports.updateProfile = async (req, res) => {
 
 // Đăng xuất
 exports.logout = async (req, res) => {
+    res.cookie('token', null, {
+        expires: new Date(Date.now()),
+        httpOnly: true
+    });
+
     res.status(200).json({
         success: true,
         message: 'Đăng xuất thành công'

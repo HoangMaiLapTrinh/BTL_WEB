@@ -6,6 +6,7 @@ import { AuthProvider } from './context/AuthContext.js';
 import Header from './components/Layout/component/Header/index.js';
 import LoginAndRegister from './pages/LoginandRegister/index.js';
 import Toast from './components/Toast/index.js';
+import ProtectedRoute from './components/ProtectedRoute/index.js';
 
 function App() {
     return (
@@ -25,7 +26,19 @@ function App() {
                         {privateRoutes.map((route, index) => {
                             const Layout = route.layout === null ? Fragment : DefaultLayout;
                             const Page = route.component;
-                            return <Route key={index} path={route.path} element={<Layout><Page /></Layout>} />;
+                            const isAdminRoute = route.path === '/admin';
+                            
+                            return (
+                                <Route 
+                                    key={index} 
+                                    path={route.path} 
+                                    element={
+                                        <ProtectedRoute adminOnly={isAdminRoute}>
+                                            <Layout><Page /></Layout>
+                                        </ProtectedRoute>
+                                    } 
+                                />
+                            );
                         })}
                     </Routes>
                 </div>

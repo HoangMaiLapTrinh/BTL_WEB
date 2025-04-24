@@ -6,12 +6,30 @@ const cookieParser = require('cookie-parser');
 const app = express();
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 app.use(cookieParser());
+
+// Cấu hình CORS
 app.use(cors({
-    origin: 'http://localhost:8080', // URL của frontend
-    credentials: true // Cho phép gửi cookies
+    origin: ['http://localhost:8080', 'http://localhost:3000'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
 }));
+
+// Đặt headers CORS thủ công để đảm bảo
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', req.headers.origin);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    
+    // Xử lý preflight request
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+    next();
+});
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, {

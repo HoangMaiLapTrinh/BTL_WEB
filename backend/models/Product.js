@@ -10,7 +10,7 @@ const productSchema = new mongoose.Schema({
     price: {
         type: Number,
         required: [true, 'Vui lòng nhập giá sản phẩm'],
-        maxLength: [8, 'Giá sản phẩm không được vượt quá 8 chữ số'],
+        maxLength: [12, 'Giá sản phẩm không được vượt quá 12 chữ số'],
         default: 0.0
     },
     description: {
@@ -30,8 +30,7 @@ const productSchema = new mongoose.Schema({
         }
     ],
     category: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'Category',
+        type: String,
         required: [true, 'Vui lòng chọn danh mục sản phẩm']
     },
     seller: {
@@ -73,6 +72,39 @@ const productSchema = new mongoose.Schema({
             }
         }
     ],
+    // Các trường tùy chỉnh của store
+    brand: {
+        type: String,
+        default: ''
+    },
+    xuatXu: {
+        type: String,
+        default: ''
+    },
+    gioiTinh: {
+        type: String,
+        default: ''
+    },
+    mauSac: {
+        type: String,
+        default: ''
+    },
+    kieuDang: {
+        type: String,
+        default: ''
+    },
+    chatLieu: {
+        type: String,
+        default: ''
+    },
+    size: {
+        type: String,
+        default: ''
+    },
+    code: {
+        type: String,
+        default: ''
+    },
     createdAt: {
         type: Date,
         default: Date.now
