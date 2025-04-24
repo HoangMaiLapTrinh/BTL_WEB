@@ -16,13 +16,34 @@ exports.createProduct = async (req, res) => {
             req.body.seller = "unknown"; // Giá trị mặc định nếu không có seller
         }
         
-        const product = await Product.create(req.body);
-        console.log('Product created successfully:', product);
-
-        res.status(201).json({
-            success: true,
-            product
-        });
+        // Tạo mã code ngẫu nhiên nếu không có
+        if (!req.body.code || req.body.code === '') {
+            req.body.code = 'PROD-' + Math.floor(Math.random() * 1000000).toString();
+        }
+        
+        try {
+            const product = await Product.create(req.body);
+            console.log('Product created successfully:', product);
+            
+            res.status(201).json({
+                success: true,
+                product
+            });
+        } catch (err) {
+            // Nếu lỗi trùng lặp code, thử lại với code khác
+            if (err.code === 11000 && err.keyPattern && err.keyPattern.code) {
+                req.body.code = 'PROD-' + Math.floor(Math.random() * 1000000).toString();
+                const product = await Product.create(req.body);
+                console.log('Product created with new code:', product);
+                
+                res.status(201).json({
+                    success: true,
+                    product
+                });
+            } else {
+                throw err;
+            }
+        }
     } catch (error) {
         console.error('Error creating product:', error);
         res.status(500).json({

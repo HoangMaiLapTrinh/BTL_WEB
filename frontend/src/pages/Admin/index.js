@@ -79,13 +79,20 @@ function Admin() {
     };
 
     const handleSaveProduct = () => {
+        // Tạo mã sản phẩm ngẫu nhiên nếu không được nhập
+        const randomCode = !newProduct.code || newProduct.code.trim() === '' ? 
+            `PROD-${Math.floor(Math.random() * 1000000)}` : newProduct.code;
+            
+        // Tạo đối tượng sản phẩm phù hợp với schema
         const productData = {
             name: newProduct.name,
             price: newProduct.price,
             description: newProduct.description || `Mô tả sản phẩm ${newProduct.name}`,
             images: newProduct.images || [{ url: 'https://via.placeholder.com/150' }],
-            category: newProduct.category || '6418b95ee7644b19ba04ff83',
+            category: newProduct.category || 'Áo sơ mi', // Danh mục mặc định
             stock: newProduct.stock || 10,
+            code: randomCode,
+            // Các thông tin bổ sung
             brand: newProduct.brand,
             xuatXu: newProduct.xuatXu,
             gioiTinh: newProduct.gioiTinh,

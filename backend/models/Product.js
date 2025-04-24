@@ -103,7 +103,9 @@ const productSchema = new mongoose.Schema({
     },
     code: {
         type: String,
-        default: ''
+        default: function() {
+            return 'PROD-' + Math.floor(Math.random() * 1000000).toString();
+        }
     },
     createdAt: {
         type: Date,
