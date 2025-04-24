@@ -38,6 +38,7 @@ const OrderStatusBadge = ({ status }) => {
 const MyOrders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cancellingOrder, setCancellingOrder] = useState(null);
   const navigate = useNavigate();
   const { user } = useAuth();
   
@@ -47,48 +48,98 @@ const MyOrders = () => {
       return;
     }
     
-    const fetchOrders = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem('token');
-        
-        const response = await axios.get(`${API_URL}/orders/orders/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          withCredentials: true
-        });
-        
-        if (response.data.success) {
-          // Sort orders by date (newest first)
-          const sortedOrders = response.data.orders.sort((a, b) => 
-            new Date(b.createdAt) - new Date(a.createdAt)
-          );
-          setOrders(sortedOrders);
-        } else {
-          showToast({
-            title: 'Lỗi',
-            message: 'Không thể tải danh sách đơn hàng',
-            type: 'error',
-            duration: 3000
-          });
-        }
-      } catch (error) {
-        console.error('Lỗi khi lấy dữ liệu đơn hàng:', error);
+    fetchOrders();
+  }, [navigate, user]);
+  
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      const response = await axios.get(`${API_URL}/orders/orders/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        withCredentials: true
+      });
+      
+      if (response.data.success) {
+        // Sort orders by date (newest first)
+        const sortedOrders = response.data.orders.sort((a, b) => 
+          new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        setOrders(sortedOrders);
+      } else {
         showToast({
           title: 'Lỗi',
           message: 'Không thể tải danh sách đơn hàng',
           type: 'error',
           duration: 3000
         });
-      } finally {
-        setLoading(false);
       }
-    };
-    
-    fetchOrders();
-  }, [navigate, user]);
+    } catch (error) {
+      console.error('Lỗi khi lấy dữ liệu đơn hàng:', error);
+      showToast({
+        title: 'Lỗi',
+        message: 'Không thể tải danh sách đơn hàng',
+        type: 'error',
+        duration: 3000
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleCancelOrder = async (orderId) => {
+    try {
+      setCancellingOrder(orderId);
+      const token = localStorage.getItem('token');
+      
+      const response = await axios.put(
+        `${API_URL}/orders/order/${orderId}/cancel`,
+        { status: 'Cancelled' },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          withCredentials: true
+        }
+      );
+      
+      if (response.data.success) {
+        showToast({
+          title: 'Thành công',
+          message: 'Đơn hàng đã được hủy thành công',
+          type: 'success',
+          duration: 3000
+        });
+        
+        // Cập nhật trạng thái đơn hàng trong danh sách
+        setOrders(orders.map(order => 
+          order._id === orderId ? { ...order, orderStatus: 'Cancelled' } : order
+        ));
+      } else {
+        showToast({
+          title: 'Lỗi',
+          message: 'Không thể hủy đơn hàng',
+          type: 'error',
+          duration: 3000
+        });
+      }
+    } catch (error) {
+      console.error('Lỗi khi hủy đơn hàng:', error);
+      showToast({
+        title: 'Lỗi',
+        message: error.response?.data?.message || 'Không thể hủy đơn hàng',
+        type: 'error',
+        duration: 3000
+      });
+    } finally {
+      setCancellingOrder(null);
+    }
+  };
   
   // Format date to Vietnamese locale
   const formatDate = (dateString) => {
@@ -189,8 +240,12 @@ const MyOrders = () => {
                     Xem chi tiết
                   </Link>
                   {order.orderStatus === 'Processing' && (
-                    <button className={cx('cancelOrderBtn')}>
-                      Hủy đơn hàng
+                    <button 
+                      className={cx('cancelOrderBtn')}
+                      onClick={() => handleCancelOrder(order._id)}
+                      disabled={cancellingOrder === order._id}
+                    >
+                      {cancellingOrder === order._id ? 'Đang hủy...' : 'Hủy đơn hàng'}
                     </button>
                   )}
                 </div>

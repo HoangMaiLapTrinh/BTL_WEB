@@ -176,4 +176,49 @@ exports.deleteOrder = async (req, res) => {
             message: error.message
         });
     }
+};
+
+// Người dùng hủy đơn hàng
+exports.cancelOrder = async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'Không tìm thấy đơn hàng'
+            });
+        }
+
+        // Kiểm tra xem người dùng hiện tại có phải là người đặt đơn hàng này không
+        if (order.user.toString() !== req.user._id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: 'Bạn không có quyền hủy đơn hàng này'
+            });
+        }
+
+        // Kiểm tra xem đơn hàng có thể hủy không (chỉ có thể hủy khi trạng thái là Processing)
+        if (order.orderStatus !== 'Processing') {
+            return res.status(400).json({
+                success: false,
+                message: 'Không thể hủy đơn hàng này vì đã được xử lý'
+            });
+        }
+
+        // Cập nhật trạng thái đơn hàng thành Cancelled
+        order.orderStatus = 'Cancelled';
+
+        await order.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Đơn hàng đã được hủy thành công'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
 }; 

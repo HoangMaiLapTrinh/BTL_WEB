@@ -39,6 +39,8 @@ const OrderDetail = () => {
   const { id } = useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
+  const [showConfirmCancel, setShowConfirmCancel] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
   
@@ -48,32 +50,25 @@ const OrderDetail = () => {
       return;
     }
     
-    const fetchOrderDetails = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem('token');
-        
-        const response = await axios.get(`${API_URL}/order/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          withCredentials: true
-        });
-        
-        if (response.data.success) {
-          setOrder(response.data.order);
-        } else {
-          showToast({
-            title: 'Lỗi',
-            message: 'Không thể tải thông tin đơn hàng',
-            type: 'error',
-            duration: 3000
-          });
-          navigate('/my-orders');
-        }
-      } catch (error) {
-        console.error('Lỗi khi lấy chi tiết đơn hàng:', error);
+    fetchOrderDetails();
+  }, [id, navigate, user]);
+  
+  const fetchOrderDetails = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      const response = await axios.get(`${API_URL}/orders/order/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        withCredentials: true
+      });
+      
+      if (response.data.success) {
+        setOrder(response.data.order);
+      } else {
         showToast({
           title: 'Lỗi',
           message: 'Không thể tải thông tin đơn hàng',
@@ -81,13 +76,71 @@ const OrderDetail = () => {
           duration: 3000
         });
         navigate('/my-orders');
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error('Lỗi khi lấy chi tiết đơn hàng:', error);
+      showToast({
+        title: 'Lỗi',
+        message: 'Không thể tải thông tin đơn hàng',
+        type: 'error',
+        duration: 3000
+      });
+      navigate('/my-orders');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleCancelOrder = async () => {
+    if (!order) return;
     
-    fetchOrderDetails();
-  }, [id, navigate, user]);
+    try {
+      setCancelling(true);
+      const token = localStorage.getItem('token');
+      
+      const response = await axios.put(
+        `${API_URL}/orders/order/${id}/cancel`, 
+        { status: 'Cancelled' },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          withCredentials: true
+        }
+      );
+      
+      if (response.data.success) {
+        // Cập nhật trạng thái đơn hàng
+        setOrder({ ...order, orderStatus: 'Cancelled' });
+        setShowConfirmCancel(false);
+        
+        showToast({
+          title: 'Thành công',
+          message: 'Đơn hàng đã được hủy thành công',
+          type: 'success',
+          duration: 3000
+        });
+      } else {
+        showToast({
+          title: 'Lỗi',
+          message: 'Không thể hủy đơn hàng',
+          type: 'error',
+          duration: 3000
+        });
+      }
+    } catch (error) {
+      console.error('Lỗi khi hủy đơn hàng:', error);
+      showToast({
+        title: 'Lỗi',
+        message: error.response?.data?.message || 'Không thể hủy đơn hàng',
+        type: 'error',
+        duration: 3000
+      });
+    } finally {
+      setCancelling(false);
+    }
+  };
   
   // Format date to Vietnamese locale
   const formatDate = (dateString) => {
@@ -235,12 +288,65 @@ const OrderDetail = () => {
           </Link>
           
           {order.orderStatus === 'Processing' && (
-            <button className={cx('cancelButton')}>
-              <i className="fas fa-times"></i> Hủy đơn hàng
+            <button 
+              className={cx('cancelButton')} 
+              onClick={() => setShowConfirmCancel(true)}
+              disabled={cancelling}
+            >
+              <i className="fas fa-times"></i> {cancelling ? 'Đang hủy đơn hàng...' : 'Hủy đơn hàng'}
             </button>
           )}
+          
+          {/* Theo dõi trạng thái đơn hàng */}
+          <div className={cx('orderProgress')}>
+            <h3>Trạng thái đơn hàng</h3>
+            <div className={cx('progressSteps')}>
+              <div className={cx('step', { active: ['Processing', 'Confirmed', 'Shipping', 'Delivered'].includes(order.orderStatus) })}>
+                <div className={cx('stepIcon')}>1</div>
+                <div className={cx('stepLabel')}>Đang xử lý</div>
+              </div>
+              <div className={cx('step', { active: ['Confirmed', 'Shipping', 'Delivered'].includes(order.orderStatus) })}>
+                <div className={cx('stepIcon')}>2</div>
+                <div className={cx('stepLabel')}>Đã xác nhận</div>
+              </div>
+              <div className={cx('step', { active: ['Shipping', 'Delivered'].includes(order.orderStatus) })}>
+                <div className={cx('stepIcon')}>3</div>
+                <div className={cx('stepLabel')}>Đang giao hàng</div>
+              </div>
+              <div className={cx('step', { active: ['Delivered'].includes(order.orderStatus) })}>
+                <div className={cx('stepIcon')}>4</div>
+                <div className={cx('stepLabel')}>Đã giao hàng</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+      
+      {/* Modal xác nhận hủy đơn hàng */}
+      {showConfirmCancel && (
+        <div className={cx('modalOverlay')}>
+          <div className={cx('confirmModal')}>
+            <h3>Xác nhận hủy đơn hàng</h3>
+            <p>Bạn có chắc chắn muốn hủy đơn hàng này không? Hành động này không thể hoàn tác.</p>
+            <div className={cx('modalButtons')}>
+              <button 
+                className={cx('cancelModalBtn')} 
+                onClick={() => setShowConfirmCancel(false)}
+                disabled={cancelling}
+              >
+                Không, giữ đơn hàng
+              </button>
+              <button 
+                className={cx('confirmModalBtn')} 
+                onClick={handleCancelOrder}
+                disabled={cancelling}
+              >
+                {cancelling ? 'Đang hủy...' : 'Có, hủy đơn hàng'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
