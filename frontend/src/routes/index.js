@@ -9,6 +9,8 @@ import Admin from '../pages/Admin/index.js';
 const publicRoutes = [
     { path: '/', component: Home },
     { path: '/products', component: Product },
+    { path: '/product/:id', component: Product },
+    { path: '/products/:id', component: Product },
     { path: '/login', component: LoginAndRegister},
     { path: '/info', component: Info},
 ]
