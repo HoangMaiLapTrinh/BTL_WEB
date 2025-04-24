@@ -3,6 +3,7 @@ import * as styles from './Cart.module.scss';
 import classNames from 'classnames/bind';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import emptyCartImage from '../../img/empty-cart.webp';
+import { showToast } from '../../components/Toast/index.js';
 const cx = classNames.bind(styles);
 
 function Cart() {
@@ -15,10 +16,22 @@ function Cart() {
                 item.id === id ? {...item, quantity: newQuantity} : item
             )
         );
+        showToast({
+            title: "Cập nhật",
+            message: "Số lượng sản phẩm đã được cập nhật!",
+            type: "info",
+            duration: 2000
+        });
     }
 
     function handleRemoveItem(id) {
         setCartItems(prevItems => prevItems.filter(item => item.id !== id));
+        showToast({
+            title: "Đã xóa",
+            message: "Sản phẩm đã được xóa khỏi giỏ hàng!",
+            type: "success",
+            duration: 3000
+        });
     }
 
     function calculateTotal() {
@@ -135,7 +148,15 @@ function Cart() {
                             </div>
                             <button 
                                 className={cx('checkoutBtn')}
-                                onClick={() => console.log('Tiến hành thanh toán')}
+                                onClick={() => {
+                                    console.log('Tiến hành thanh toán');
+                                    showToast({
+                                        title: "Thanh toán",
+                                        message: "Đang chuyển đến trang thanh toán...",
+                                        type: "info",
+                                        duration: 2000
+                                    });
+                                }}
                             >
                                 THANH TOÁN
                             </button>

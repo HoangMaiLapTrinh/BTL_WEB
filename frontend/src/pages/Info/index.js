@@ -3,10 +3,20 @@ import { Link } from 'react-router-dom';
 import * as styles from './Info.module.scss';
 import classNames from 'classnames/bind';
 import accountIcon from '../../img/account-icon.png';
+import { showToast } from '../../components/Toast/index.js';
 
 const cx = classNames.bind(styles);
 
 const Info = () => {
+  const handleContactClick = (name) => {
+    showToast({
+      title: "Liên hệ",
+      message: `Đã gửi yêu cầu liên hệ đến ${name}`,
+      type: "info",
+      duration: 3000
+    });
+  };
+
   return (
     <div className={cx('wrapper')}>
       {/* Thành viên 1 */}
@@ -22,6 +32,12 @@ const Info = () => {
           <p>Học tại Đại học Công nghiệp Thành phố Hồ Chí Minh</p>
           <p>Email:</p>
           <a href="mailto:vuongnguyen221203@gmail.com">vuongnguyen221203@gmail.com</a>
+          <button 
+            className={cx('contact-btn')}
+            onClick={() => handleContactClick('Nguyễn Đức Vương')}
+          >
+            Liên hệ
+          </button>
         </div>
         <ul className={cx('profile-social-links')}>
           <li>
@@ -69,6 +85,12 @@ const Info = () => {
           <p>Học tại Đại học Công nghiệp Thành phố Hồ Chí Minh</p>
           <p>Email:</p>
           <a href="mailto:phantuan7a5@gmail.com">phantuan7a5@gmail.com</a>
+          <button 
+            className={cx('contact-btn')}
+            onClick={() => handleContactClick('Phan Anh Tuấn')}
+          >
+            Liên hệ
+          </button>
         </div>
         <ul className={cx('profile-social-links')}>
           <li>
@@ -116,6 +138,12 @@ const Info = () => {
           <p>Học tại Đại học Công nghiệp Thành phố Hồ Chí Minh</p>
           <p>Email:</p>
           <a href="mailto:hoangmai020603@gmail.com">hoangmai020603@gmail.com</a>
+          <button 
+            className={cx('contact-btn')}
+            onClick={() => handleContactClick('Mai Lê Huy Hoàng')}
+          >
+            Liên hệ
+          </button>
         </div>
         <ul className={cx('profile-social-links')}>
           <li>

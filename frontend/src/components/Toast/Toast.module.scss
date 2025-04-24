@@ -36,6 +36,21 @@
     }
 }
 
+@keyframes slideOutRight {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(calc(100% + 32px));
+    }
+}
+
+.hide {
+    animation: slideOutRight ease 0.5s forwards;
+}
+
 .toast--success {
     border-color: #47d864;
 }
@@ -98,4 +113,15 @@
     font-size: 20px;
     color: rgba(0, 0, 0, 0.3);
     cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &:hover {
+        color: rgba(0, 0, 0, 0.7);
+        transform: scale(1.1);
+    }
+    
+    &:active {
+        color: rgba(0, 0, 0, 0.9);
+        transform: scale(0.95);
+    }
 } 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import * as styles from './Checkout.module.scss';
 import classNames from 'classnames/bind';
+import { showToast } from '../../components/Toast/index.js';
 const cx = classNames.bind(styles);
 
 const Checkout = () => {
@@ -25,6 +26,25 @@ const Checkout = () => {
         e.preventDefault();
         // Xử lý logic thanh toán ở đây
         console.log('Form data:', formData);
+        
+        // Kiểm tra điều kiện form
+        if (!formData.firstName || !formData.lastName || !formData.email || !formData.address || !formData.phone) {
+            showToast({
+                title: "Lỗi",
+                message: "Vui lòng điền đầy đủ thông tin!",
+                type: "error",
+                duration: 3000
+            });
+            return;
+        }
+        
+        // Thông báo thành công nếu form hợp lệ
+        showToast({
+            title: "Thành công",
+            message: "Đơn hàng của bạn đã được đặt thành công!",
+            type: "success",
+            duration: 3000
+        });
     };
 
     return (
@@ -115,7 +135,13 @@ const Checkout = () => {
                             </div>
                             <div className={cx('paymentMethod')}>
                                 <div className={cx('orderBtn')}>
-                                    <button type="submit" className={cx('siteBtn')}>Place Order</button>
+                                    <button 
+                                        type="submit" 
+                                        className={cx('siteBtn')}
+                                        onClick={handleSubmit}
+                                    >
+                                        Place Order
+                                    </button>
                                 </div>
                             </div>
                         </div>

@@ -5,6 +5,7 @@ import * as styles from './Home.module.scss';
 import { useSlider } from './home.js';
 import ProductItem from '../../components/ProductItem/index.js';
 import { API_URL } from '../../services/authService.js';
+import { showToast } from '../../components/Toast/index.js';
 
 const cx = classNames.bind(styles);
 
@@ -20,12 +21,24 @@ function Home() {
                 const response = await axios.get(`${API_URL}/products/products`);
                 if (response.data.success) {
                     setProducts(response.data.products);
+                    showToast({
+                        title: "Thành công",
+                        message: "Đã tải sản phẩm thành công!",
+                        type: "success",
+                        duration: 2000
+                    });
                 }
                 setLoading(false);
             } catch (error) {
                 console.error('Lỗi khi lấy sản phẩm:', error);
                 setError('Không thể tải sản phẩm. Vui lòng thử lại sau.');
                 setLoading(false);
+                showToast({
+                    title: "Lỗi",
+                    message: "Không thể tải sản phẩm. Vui lòng thử lại sau!",
+                    type: "error",
+                    duration: 3000
+                });
             }
         };
 

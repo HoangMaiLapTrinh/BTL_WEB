@@ -4,6 +4,7 @@ import classNames from 'classnames/bind';
 import * as styles from './Admin.module.scss';
 import { API_URL } from '../../services/authService.js';
 import { useAuth } from '../../context/AuthContext.js';
+import { showToast } from '../../components/Toast/index.js';
 
 const cx = classNames.bind(styles);
 
@@ -131,6 +132,12 @@ function Admin() {
                     chatLieu: '',
                     size: ''
                 });
+                showToast({
+                    title: "Thành công",
+                    message: "Thêm sản phẩm mới thành công!",
+                    type: "success",
+                    duration: 3000
+                });
             }
         })
         .catch(error => {
@@ -138,11 +145,23 @@ function Admin() {
             if (error.response) {
                 console.error('Dữ liệu phản hồi:', error.response.data);
             }
+            showToast({
+                title: "Lỗi",
+                message: "Không thể thêm sản phẩm. Vui lòng thử lại!",
+                type: "error",
+                duration: 3000
+            });
         });
     };
 
     const handleEditProduct = (productId) => {
         // Logic sửa sản phẩm
+        showToast({
+            title: "Thông báo",
+            message: "Chức năng đang được phát triển",
+            type: "info",
+            duration: 3000
+        });
     };
 
     const handleDeleteProduct = (productId) => {
@@ -150,10 +169,22 @@ function Admin() {
             .then(response => {
                 if (response.data.success) {
                     setProducts(products.filter(product => product._id !== productId));
+                    showToast({
+                        title: "Thành công",
+                        message: "Đã xóa sản phẩm thành công!",
+                        type: "success",
+                        duration: 3000
+                    });
                 }
             })
             .catch(error => {
                 console.error('Lỗi khi xóa sản phẩm:', error);
+                showToast({
+                    title: "Lỗi",
+                    message: "Không thể xóa sản phẩm. Vui lòng thử lại!",
+                    type: "error",
+                    duration: 3000
+                });
             });
     };
 

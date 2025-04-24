@@ -1,5 +1,5 @@
 import Home from '../pages/Home/index.js';
-import Product from '../pages/Product/index.js';
+import Product from '../pages/ProductDetail/index.js';
 import Cart from '../pages/Cart/index.js';
 import LoginAndRegister from '../pages/LoginandRegister/index.js';
 import Info from '../pages/Info/index.js';

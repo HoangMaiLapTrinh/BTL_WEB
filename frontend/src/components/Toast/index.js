@@ -13,15 +13,24 @@ export function showToast({ title = "", message = "", type = "info", duration = 
         
         // Auto remove toast
         const autoRemoveId = setTimeout(function () {
-            main.removeChild(toast);
-        }, duration + 1000);
+            toast.classList.add(cx('hide'));
+            setTimeout(() => {
+                if (main.contains(toast)) {
+                    main.removeChild(toast);
+                }
+            }, 500);
+        }, duration);
     
-        // Remove toast when clicked
-        toast.onclick = function (e) {
-            if (e.target.closest(".toast__close")) {
-                main.removeChild(toast);
-                clearTimeout(autoRemoveId);
-            }
+        // Xử lý sự kiện khi nhấn nút đóng (X)
+        const handleClose = function() {
+            toast.classList.add(cx('hide'));
+            clearTimeout(autoRemoveId);
+            setTimeout(() => {
+                if (main.contains(toast)) {
+                    main.removeChild(toast);
+                    console.log("Đã đóng thông báo");
+                }
+            }, 500);
         };
     
         const icons = {
@@ -48,7 +57,30 @@ export function showToast({ title = "", message = "", type = "info", duration = 
                 <i class="fas fa-times"></i>
             </div>
         `;
+        
+        // Đặt sự kiện click cho nút đóng
         main.appendChild(toast);
+        
+        const closeButton = toast.querySelector(`.${cx('toast__close')}`);
+        if (closeButton) {
+            closeButton.addEventListener('click', handleClose);
+        }
+        
+        // Thêm sự kiện khi hover vào toast
+        toast.addEventListener('mouseenter', function() {
+            clearTimeout(autoRemoveId);
+        });
+        
+        toast.addEventListener('mouseleave', function() {
+            const newAutoRemoveId = setTimeout(function () {
+                toast.classList.add(cx('hide'));
+                setTimeout(() => {
+                    if (main.contains(toast)) {
+                        main.removeChild(toast);
+                    }
+                }, 500);
+            }, duration);
+        });
     }
 }
 
