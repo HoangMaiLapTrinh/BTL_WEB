@@ -6,12 +6,16 @@ const {
     getProductDetails,
     updateProduct,
     deleteProduct,
-    createProductReview
+    createProductReview,
+    getProductsByCategory
 } = require('../controllers/productController');
 const { isAuthenticatedUser, authorizeRoles } = require('../middleware/auth');
 
 // Danh sách sản phẩm
 router.route('/products').get(getProducts);
+
+// Lấy sản phẩm theo danh mục
+router.route('/category/:categoryId').get(getProductsByCategory);
 
 // Thêm sản phẩm mới
 router.route('/product/new').post(isAuthenticatedUser, authorizeRoles('admin'), createProduct);

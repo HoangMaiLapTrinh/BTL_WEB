@@ -195,4 +195,26 @@ exports.createProductReview = async (req, res) => {
             message: error.message
         });
     }
+};
+
+// Lấy sản phẩm theo danh mục
+exports.getProductsByCategory = async (req, res) => {
+    try {
+        const { categoryId } = req.params;
+        
+        // Truy vấn sản phẩm theo danh mục
+        const products = await Product.find({ category: categoryId });
+
+        res.status(200).json({
+            success: true,
+            count: products.length,
+            products
+        });
+    } catch (error) {
+        console.error('Lỗi khi lấy sản phẩm theo danh mục:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
 }; 

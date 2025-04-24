@@ -7,41 +7,44 @@ import Header from './components/Layout/component/Header/index.js';
 import LoginAndRegister from './pages/LoginandRegister/index.js';
 import Toast from './components/Toast/index.js';
 import ProtectedRoute from './components/ProtectedRoute/index.js';
+import PageTransition from './components/PageTransition/PageTransition.js';
 
 function App() {
     return (
         <AuthProvider>
             <Router>
-                <div className="App">
-                    <Toast />
-                    <Header />
-                    <Routes>
-                        <Route path="/login" element={<LoginAndRegister />} />
-                        {publicRoutes.map((route, index) => {
-                            const Layout = route.layout === null ? Fragment : DefaultLayout;
-                            const Page = route.component;
-                            return <Route key={index} path={route.path} element={<Layout><Page /></Layout>} />;
-                        })}
-                        
-                        {privateRoutes.map((route, index) => {
-                            const Layout = route.layout === null ? Fragment : DefaultLayout;
-                            const Page = route.component;
-                            const isAdminRoute = route.path === '/admin';
+                <PageTransition>
+                    <div className="App">
+                        <Toast />
+                        <Header />
+                        <Routes>
+                            <Route path="/login" element={<LoginAndRegister />} />
+                            {publicRoutes.map((route, index) => {
+                                const Layout = route.layout === null ? Fragment : DefaultLayout;
+                                const Page = route.component;
+                                return <Route key={index} path={route.path} element={<Layout><Page /></Layout>} />;
+                            })}
                             
-                            return (
-                                <Route 
-                                    key={index} 
-                                    path={route.path} 
-                                    element={
-                                        <ProtectedRoute adminOnly={isAdminRoute}>
-                                            <Layout><Page /></Layout>
-                                        </ProtectedRoute>
-                                    } 
-                                />
-                            );
-                        })}
-                    </Routes>
-                </div>
+                            {privateRoutes.map((route, index) => {
+                                const Layout = route.layout === null ? Fragment : DefaultLayout;
+                                const Page = route.component;
+                                const isAdminRoute = route.path === '/admin';
+                                
+                                return (
+                                    <Route 
+                                        key={index} 
+                                        path={route.path} 
+                                        element={
+                                            <ProtectedRoute adminOnly={isAdminRoute}>
+                                                <Layout><Page /></Layout>
+                                            </ProtectedRoute>
+                                        } 
+                                    />
+                                );
+                            })}
+                        </Routes>
+                    </div>
+                </PageTransition>
             </Router>
         </AuthProvider>
     );
