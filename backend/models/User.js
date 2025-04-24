@@ -42,6 +42,48 @@ const userSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
+    notificationSettings: {
+        emailNotifications: {
+            type: Boolean,
+            default: true
+        },
+        orderUpdates: {
+            type: Boolean,
+            default: true
+        },
+        promotions: {
+            type: Boolean,
+            default: true
+        },
+        newsletter: {
+            type: Boolean,
+            default: false
+        }
+    },
+    privacySettings: {
+        shareProfileData: {
+            type: Boolean,
+            default: false
+        },
+        showOrderHistory: {
+            type: Boolean,
+            default: true
+        },
+        allowAnalytics: {
+            type: Boolean,
+            default: true
+        }
+    },
+    languagePreference: {
+        type: String,
+        enum: ['vi', 'en'],
+        default: 'vi'
+    },
+    themePreference: {
+        type: String,
+        enum: ['light', 'dark', 'system'],
+        default: 'light'
+    },
     resetPasswordToken: String,
     resetPasswordExpire: Date
 });

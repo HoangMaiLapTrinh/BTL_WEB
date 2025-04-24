@@ -23,19 +23,16 @@ export const listMyOrders = () => async (dispatch, getState) => {
   try {
     dispatch({ type: ORDER_LIST_MY_REQUEST });
 
-    const { userLogin: { userInfo } } = getState();
+    const token = localStorage.getItem('token');
 
     const config = {
       headers: {
-        Authorization: `Bearer ${userInfo.token}`,
+        Authorization: `Bearer ${token}`,
       },
       withCredentials: true
     };
 
-    const { data } = await axios.get(
-      `${API_URL}/orders/orders/me`,
-      config
-    );
+    const { data } = await axios.get(`${API_URL}/orders/me`, config);
 
     dispatch({
       type: ORDER_LIST_MY_SUCCESS,
@@ -53,23 +50,20 @@ export const listMyOrders = () => async (dispatch, getState) => {
 };
 
 // Action để lấy chi tiết đơn hàng
-export const getOrderDetails = (orderId) => async (dispatch, getState) => {
+export const getOrderDetails = (id) => async (dispatch, getState) => {
   try {
     dispatch({ type: ORDER_DETAILS_REQUEST });
 
-    const { userLogin: { userInfo } } = getState();
+    const token = localStorage.getItem('token');
 
     const config = {
       headers: {
-        Authorization: `Bearer ${userInfo.token}`,
+        Authorization: `Bearer ${token}`,
       },
       withCredentials: true
     };
 
-    const { data } = await axios.get(
-      `${API_URL}/order/${orderId}`,
-      config
-    );
+    const { data } = await axios.get(`${API_URL}/orders/${id}`, config);
 
     dispatch({
       type: ORDER_DETAILS_SUCCESS,

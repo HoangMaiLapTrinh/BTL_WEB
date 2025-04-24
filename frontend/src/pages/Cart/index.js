@@ -127,18 +127,18 @@ function Cart() {
 
             if (response.data.success) {
                 // Cập nhật state
-                setCartItems(prevItems => 
-                    prevItems.map(item => 
-                        item.id === id ? {...item, quantity: newQuantity} : item
-                    )
-                );
+        setCartItems(prevItems => 
+            prevItems.map(item => 
+                item.id === id ? {...item, quantity: newQuantity} : item
+            )
+        );
                 
-                showToast({
-                    title: "Cập nhật",
-                    message: "Số lượng sản phẩm đã được cập nhật!",
-                    type: "info",
-                    duration: 2000
-                });
+        showToast({
+            title: "Cập nhật",
+            message: "Số lượng sản phẩm đã được cập nhật!",
+            type: "info",
+            duration: 2000
+        });
                 
                 // Kích hoạt sự kiện cập nhật số lượng giỏ hàng
                 window.dispatchEvent(new Event('cart-updated'));
@@ -179,14 +179,14 @@ function Cart() {
 
             if (response.data.success) {
                 // Cập nhật state
-                setCartItems(prevItems => prevItems.filter(item => item.id !== id));
+        setCartItems(prevItems => prevItems.filter(item => item.id !== id));
                 
-                showToast({
-                    title: "Đã xóa",
-                    message: "Sản phẩm đã được xóa khỏi giỏ hàng!",
-                    type: "success",
-                    duration: 3000
-                });
+        showToast({
+            title: "Đã xóa",
+            message: "Sản phẩm đã được xóa khỏi giỏ hàng!",
+            type: "success",
+            duration: 3000
+        });
                 
                 // Kích hoạt sự kiện cập nhật số lượng giỏ hàng
                 window.dispatchEvent(new Event('cart-updated'));

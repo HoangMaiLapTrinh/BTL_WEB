@@ -48,4 +48,22 @@ export const updateProfile = async (userData) => {
     } catch (error) {
         throw error.response.data;
     }
+};
+
+export const updatePassword = async (passwordData) => {
+    try {
+        const response = await axios.put(`${API_URL}/auth/password/update`, passwordData, { withCredentials: true });
+        return response.data;
+    } catch (error) {
+        throw error.response.data;
+    }
+};
+
+export const updateSettings = async (settingsData) => {
+    try {
+        const response = await axios.put(`${API_URL}/auth/settings/update`, settingsData, { withCredentials: true });
+        return response.data;
+    } catch (error) {
+        throw error.response.data;
+    }
 }; 

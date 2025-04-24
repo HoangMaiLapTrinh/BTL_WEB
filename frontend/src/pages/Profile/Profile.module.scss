@@ -1,0 +1,195 @@
+.profilePage {
+  padding: 40px 0;
+  background-color: #f8f8f8;
+  min-height: 100vh;
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+  }
+  
+  .pageHeader {
+    text-align: center;
+    margin-bottom: 40px;
+    margin-top: 5%;
+    
+    h1 {
+      font-size: 32px;
+      color: #333;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    
+    p {
+      color: #666;
+      font-size: 16px;
+    }
+  }
+  
+  .profileContainer {
+    max-width: 800px;
+    margin: 0 auto;
+    
+    .profileCard {
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+      margin-bottom: 30px;
+      
+      .profileHeader {
+        display: flex;
+        align-items: center;
+        padding: 25px;
+        background-color: #f9f9f9;
+        border-bottom: 1px solid #eee;
+        
+        .profileAvatar {
+          width: 100px;
+          height: 100px;
+          border-radius: 50%;
+          overflow: hidden;
+          margin-right: 20px;
+          border: 3px solid white;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+          
+          img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+        }
+        
+        .profileInfo {
+          h2 {
+            margin: 0 0 5px;
+            font-size: 24px;
+            color: #333;
+          }
+          
+          p {
+            margin: 0 0 10px;
+            color: #666;
+          }
+          
+          .userRole {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            background-color: #e6f7ff;
+            color: #1890ff;
+          }
+        }
+      }
+      
+      .profileContent {
+        padding: 30px;
+        
+        form {
+          .formSection {
+            margin-bottom: 30px;
+            
+            h3 {
+              font-size: 18px;
+              color: #333;
+              margin-bottom: 20px;
+              padding-bottom: 10px;
+              border-bottom: 1px solid #eee;
+            }
+            
+            .formGroup {
+              margin-bottom: 20px;
+              
+              label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 500;
+                color: #333;
+              }
+              
+              input {
+                width: 100%;
+                padding: 10px 15px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                font-size: 16px;
+                
+                &:focus {
+                  outline: none;
+                  border-color: #1890ff;
+                  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+                }
+              }
+            }
+            
+            .formRow {
+              display: flex;
+              gap: 20px;
+              
+              .formGroup {
+                flex: 1;
+              }
+            }
+          }
+          
+          .formActions {
+            display: flex;
+            justify-content: flex-end;
+            
+            .saveButton {
+              padding: 10px 30px;
+              background-color: #1890ff;
+              color: white;
+              border: none;
+              border-radius: 5px;
+              font-size: 16px;
+              font-weight: 500;
+              cursor: pointer;
+              transition: all 0.3s;
+              
+              &:hover {
+                background-color: #096dd9;
+              }
+              
+              &:disabled {
+                background-color: #bfbfbf;
+                cursor: not-allowed;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive styles
+@media (max-width: 768px) {
+  .profilePage {
+    .profileContainer {
+      .profileCard {
+        .profileHeader {
+          flex-direction: column;
+          text-align: center;
+          
+          .profileAvatar {
+            margin-right: 0;
+            margin-bottom: 15px;
+          }
+        }
+        
+        .profileContent {
+          form {
+            .formRow {
+              flex-direction: column;
+              gap: 0;
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -159,17 +159,18 @@ export const createOrder = (orderData) => async (dispatch, getState) => {
   try {
     dispatch({ type: CHECKOUT_REQUEST });
 
-    const { userLogin: { userInfo } } = getState();
+    const token = localStorage.getItem('token');
 
     const config = {
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${userInfo.token}`,
+        Authorization: `Bearer ${token}`,
       },
+      withCredentials: true
     };
 
     const { data } = await axios.post(
-      '/api/cart/checkout',
+      `${API_URL}/cart/checkout`,
       orderData,
       config
     );

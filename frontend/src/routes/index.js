@@ -8,6 +8,9 @@ import Admin from '../pages/Admin/index.js';
 import OrderConfirmation from '../pages/OrderConfirmation/index.js';
 import MyOrders from '../pages/MyOrders/index.js';
 import OrderDetail from '../pages/OrderDetail/index.js';
+import Profile from '../pages/Profile/index.js';
+import ChangePassword from '../pages/ChangePassword/index.js';
+import Setting from '../pages/Setting/index.js';
 
 const publicRoutes = [
     { path: '/', component: Home },
@@ -25,6 +28,9 @@ const privateRoutes = [
     { path: '/order-confirmation', component: OrderConfirmation },
     { path: '/my-orders', component: MyOrders },
     { path: '/order/:id', component: OrderDetail },
+    { path: '/profile', component: Profile },
+    { path: '/change-password', component: ChangePassword },
+    { path: '/settings', component: Setting },
 ]
 
 export { publicRoutes, privateRoutes };
