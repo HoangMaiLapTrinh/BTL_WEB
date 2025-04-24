@@ -2,25 +2,29 @@ const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema({
     shippingInfo: {
+        fullName: {
+            type: String,
+            required: [true, 'Vui lòng nhập họ tên người nhận']
+        },
         address: {
             type: String,
-            required: true
+            required: [true, 'Vui lòng nhập địa chỉ giao hàng']
         },
         city: {
             type: String,
-            required: true
+            required: [true, 'Vui lòng nhập thành phố/tỉnh']
         },
         phoneNo: {
             type: String,
-            required: true
+            required: [true, 'Vui lòng nhập số điện thoại']
         },
         postalCode: {
             type: String,
-            required: true
+            default: ''
         },
         country: {
             type: String,
-            required: true
+            default: 'Việt Nam'
         }
     },
     user: {
@@ -58,7 +62,13 @@ const orderSchema = new mongoose.Schema({
             type: String
         },
         status: {
-            type: String
+            type: String,
+            default: 'Chưa thanh toán'
+        },
+        method: {
+            type: String,
+            enum: ['COD', 'Banking', 'Momo', 'ZaloPay', 'VNPay', 'Credit Card'],
+            default: 'COD'
         }
     },
     paidAt: {
@@ -67,26 +77,31 @@ const orderSchema = new mongoose.Schema({
     itemsPrice: {
         type: Number,
         required: true,
-        default: 0.0
+        default: 0
     },
     taxPrice: {
         type: Number,
         required: true,
-        default: 0.0
+        default: 0
     },
     shippingPrice: {
         type: Number,
         required: true,
-        default: 0.0
+        default: 0
     },
     totalPrice: {
         type: Number,
         required: true,
-        default: 0.0
+        default: 0
+    },
+    note: {
+        type: String,
+        default: ''
     },
     orderStatus: {
         type: String,
         required: true,
+        enum: ['Processing', 'Confirmed', 'Shipping', 'Delivered', 'Cancelled'],
         default: 'Processing'
     },
     deliveredAt: {

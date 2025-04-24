@@ -24,6 +24,9 @@ body {
     line-height: 1.5;
     color: var(--text-color);
     background-color: var(--background-color);
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
 }
 
 a {
@@ -36,4 +39,18 @@ button {
     border: none;
     outline: none;
     background: none;
+}
+
+.App {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+.page-transition {
+    margin: 0;
+    padding: 0;
 }

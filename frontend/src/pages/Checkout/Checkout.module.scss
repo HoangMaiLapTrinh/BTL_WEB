@@ -7,6 +7,17 @@
         margin: 0 auto;
         padding: 0 15px;
     }
+    
+    .pageTitle {
+        text-align: center;
+        margin-bottom: 40px;
+        
+        h1 {
+            font-size: 32px;
+            color: #333;
+            font-weight: 600;
+        }
+    }
 
     .row {
         display: flex;
@@ -37,12 +48,19 @@
         padding: 30px;
         border-radius: 8px;
         box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+        margin-bottom: 30px;
 
         h2 {
             font-size: 24px;
             margin-bottom: 30px;
             color: #333;
+            font-weight: 600;
         }
+    }
+    
+    .required {
+        color: #e74c3c;
+        margin-left: 3px;
     }
 
     .formGroup {
@@ -74,17 +92,109 @@
             resize: vertical;
         }
     }
+    
+    .paymentOptions {
+        margin-top: 10px;
+        
+        .paymentOption {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            
+            input[type="radio"] {
+                width: auto;
+                margin-right: 10px;
+            }
+            
+            label {
+                margin-bottom: 0;
+                cursor: pointer;
+            }
+        }
+    }
 
     .checkoutOrder {
         background: #fff;
         padding: 30px;
         border-radius: 8px;
         box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+        position: sticky;
+        top: 100px;
 
         h4 {
             font-size: 20px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             color: #333;
+            font-weight: 600;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+    }
+    
+    .orderSummary {
+        margin-bottom: 30px;
+        
+        .cartItems {
+            margin-bottom: 20px;
+            
+            .orderItem {
+                display: flex;
+                justify-content: space-between;
+                padding: 10px 0;
+                border-bottom: 1px solid #f0f0f0;
+                
+                &:last-child {
+                    border-bottom: none;
+                    margin-bottom: 15px;
+                }
+                
+                .productInfo {
+                    display: flex;
+                    align-items: center;
+                    
+                    .productThumb {
+                        position: relative;
+                        width: 60px;
+                        height: 60px;
+                        margin-right: 15px;
+                        
+                        img {
+                            width: 100%;
+                            height: 100%;
+                            object-fit: cover;
+                            border-radius: 4px;
+                        }
+                        
+                        .quantity {
+                            position: absolute;
+                            top: -8px;
+                            right: -8px;
+                            background-color: #007bff;
+                            color: white;
+                            width: 20px;
+                            height: 20px;
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 12px;
+                            font-weight: bold;
+                        }
+                    }
+                    
+                    .productName {
+                        font-size: 14px;
+                        color: #333;
+                        max-width: 200px;
+                    }
+                }
+                
+                .productPrice {
+                    font-weight: 500;
+                    color: #e74c3c;
+                    font-size: 14px;
+                }
+            }
         }
     }
 
@@ -93,13 +203,16 @@
             list-style: none;
             padding: 0;
             margin: 0;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
 
             li {
                 display: flex;
                 justify-content: space-between;
-                padding: 15px 0;
-                border-bottom: 1px solid #eee;
+                padding: 12px 0;
+                border-bottom: 1px dashed #eee;
                 color: #666;
+                font-size: 15px;
 
                 &:last-child {
                     border-bottom: none;
@@ -109,13 +222,12 @@
                     font-size: 18px;
                     font-weight: 600;
                     color: #333;
+                    border-top: 1px solid #eee;
+                    margin-top: 10px;
+                    padding-top: 15px;
                 }
             }
         }
-    }
-
-    .paymentMethod {
-        margin-top: 30px;
     }
 
     .orderBtn {
@@ -136,19 +248,46 @@
             &:hover {
                 background-color: #0056b3;
             }
+            
+            &:disabled {
+                background-color: #cccccc;
+                cursor: not-allowed;
+            }
+        }
+    }
+    
+    .backToCart {
+        margin-top: 15px;
+        text-align: center;
+        
+        .backBtn {
+            background: none;
+            border: none;
+            color: #007bff;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: underline;
+            
+            &:hover {
+                color: #0056b3;
+            }
         }
     }
 }
 
 @media (max-width: 768px) {
     .checkoutPage {
-        .col8, .col4 {
+        .col8, .col4, .col6 {
             flex: 0 0 100%;
             max-width: 100%;
         }
 
         .col4 {
             margin-top: 30px;
+        }
+        
+        .checkoutOrder {
+            position: static;
         }
     }
 } 

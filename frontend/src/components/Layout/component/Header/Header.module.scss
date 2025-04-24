@@ -210,3 +210,53 @@
 .btn-dtl::before {
     content: none !important;
 }
+
+.cart-icon-container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+// Thêm CSS cho số lượng giỏ hàng
+.cart-count {
+    position: absolute;
+    top: 20px;
+    right: 1px;
+    background-color: #e74c3c;
+    color: white;
+    font-size: 9px;
+    min-width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 2px;
+    font-weight: bold;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    border: 1px solid #ffffff;
+    line-height: 1;
+}
+
+@keyframes subtlePulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Vô hiệu hóa hiệu ứng hover cho link chứa BadgeCart */
+li:has(.badge-cart) a.nav-link::before {
+    display: none !important;
+}
+
+li:has(.badge-cart) a.nav-link:hover::before {
+    width: 0 !important;
+}
+

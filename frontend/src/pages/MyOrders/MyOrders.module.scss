@@ -1,0 +1,355 @@
+.myOrdersPage {
+  padding: 60px 0;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+  }
+  
+  .pageHeader {
+    text-align: center;
+    margin-bottom: 40px;
+    
+    h1 {
+      font-size: 32px;
+      color: #333;
+      margin-bottom: 10px;
+    }
+    
+    p {
+      color: #666;
+      font-size: 16px;
+    }
+  }
+  
+  .loadingSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 50px 0;
+    
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(0, 123, 255, 0.1);
+      border-radius: 50%;
+      border-top: 3px solid #007bff;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    
+    p {
+      color: #666;
+      font-size: 16px;
+    }
+  }
+  
+  .emptyOrders {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 0;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+    
+    .emptyIcon {
+      font-size: 64px;
+      color: #ccc;
+      margin-bottom: 20px;
+      
+      i {
+        animation: fadeInOut 2s infinite;
+      }
+    }
+    
+    h2 {
+      font-size: 24px;
+      color: #333;
+      margin-bottom: 15px;
+    }
+    
+    p {
+      color: #666;
+      margin-bottom: 25px;
+      text-align: center;
+      max-width: 400px;
+    }
+    
+    .shopNowBtn {
+      background-color: #007bff;
+      color: white;
+      padding: 12px 25px;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background-color 0.3s;
+      
+      &:hover {
+        background-color: #0056b3;
+      }
+    }
+  }
+  
+  .ordersContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .orderCard {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+    
+    .orderHeader {
+      padding: 15px 20px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #f9f9f9;
+      
+      .orderInfo {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        
+        .orderId, .orderDate {
+          display: flex;
+          align-items: center;
+          
+          .label {
+            color: #666;
+            margin-right: 5px;
+            font-size: 14px;
+          }
+          
+          .value {
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+          }
+        }
+      }
+      
+      .orderStatus {
+        .statusBadge {
+          padding: 5px 10px;
+          border-radius: 50px;
+          font-size: 12px;
+          font-weight: 600;
+          text-transform: uppercase;
+          
+          &.statusProcessing {
+            background-color: #fff3cd;
+            color: #856404;
+          }
+          
+          &.statusConfirmed {
+            background-color: #cce5ff;
+            color: #004085;
+          }
+          
+          &.statusShipping {
+            background-color: #d4edda;
+            color: #155724;
+          }
+          
+          &.statusDelivered {
+            background-color: #d1e7dd;
+            color: #0f5132;
+          }
+          
+          &.statusCancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+          }
+          
+          &.statusDefault {
+            background-color: #e2e3e5;
+            color: #383d41;
+          }
+        }
+      }
+    }
+    
+    .orderBody {
+      padding: 20px;
+      display: flex;
+      
+      .orderItems {
+        flex: 1;
+        padding-right: 20px;
+        border-right: 1px solid #eee;
+        
+        .orderItem {
+          display: flex;
+          margin-bottom: 15px;
+          
+          &:last-child {
+            margin-bottom: 0;
+          }
+          
+          .itemImage {
+            width: 70px;
+            height: 70px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-right: 15px;
+            
+            img {
+              width: 100%;
+              height: 100%;
+              object-fit: cover;
+            }
+          }
+          
+          .itemDetails {
+            flex: 1;
+            
+            .itemName {
+              font-weight: 500;
+              margin-bottom: 5px;
+              font-size: 14px;
+              color: #333;
+            }
+            
+            .itemQuantity {
+              color: #666;
+              font-size: 13px;
+              margin-bottom: 5px;
+            }
+            
+            .itemPrice {
+              color: #e74c3c;
+              font-weight: 500;
+              font-size: 14px;
+            }
+          }
+        }
+        
+        .moreItems {
+          margin-top: 10px;
+          color: #666;
+          font-style: italic;
+          font-size: 13px;
+          text-align: center;
+        }
+      }
+      
+      .orderTotal {
+        width: 250px;
+        padding-left: 20px;
+        
+        .totalAmount, .paymentMethod, .paymentStatus {
+          margin-bottom: 10px;
+          
+          .label {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 5px;
+          }
+          
+          .value {
+            font-weight: 600;
+            color: #333;
+            font-size: 15px;
+          }
+        }
+        
+        .totalAmount {
+          .value {
+            color: #e74c3c;
+            font-size: 18px;
+          }
+        }
+      }
+    }
+    
+    .orderFooter {
+      padding: 15px 20px;
+      border-top: 1px solid #eee;
+      display: flex;
+      justify-content: flex-end;
+      gap: 15px;
+      
+      .viewDetailsBtn, .cancelOrderBtn {
+        padding: 8px 15px;
+        border-radius: 5px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      
+      .viewDetailsBtn {
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        
+        &:hover {
+          background-color: #0056b3;
+        }
+      }
+      
+      .cancelOrderBtn {
+        background-color: #fff;
+        color: #dc3545;
+        border: 1px solid #dc3545;
+        
+        &:hover {
+          background-color: #dc3545;
+          color: white;
+        }
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+// Responsive styles
+@media (max-width: 768px) {
+  .myOrdersPage {
+    padding: 40px 0;
+    
+    .pageHeader {
+      h1 {
+        font-size: 24px;
+      }
+    }
+    
+    .orderCard {
+      .orderBody {
+        flex-direction: column;
+        
+        .orderItems {
+          border-right: none;
+          border-bottom: 1px solid #eee;
+          padding-right: 0;
+          padding-bottom: 15px;
+          margin-bottom: 15px;
+        }
+        
+        .orderTotal {
+          width: 100%;
+          padding-left: 0;
+        }
+      }
+    }
+  }
+} 

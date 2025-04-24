@@ -1,16 +1,16 @@
 import classNames from 'classnames/bind';
 import * as styles from './Header.module.scss';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import logo_rmbg from '../../../../img/logo-rmbg.png';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { useAuth } from '../../../../context/AuthContext.js';
+import BadgeCart from '../../../BadgeCart/index.js';
 
 const cx = classNames.bind(styles);
 
 function Header() {
     const { user, logout } = useAuth();
-    const [cartCount, setCartCount] = React.useState(0);
     
     const handleLogout = () => {
         logout();
@@ -79,6 +79,10 @@ function Header() {
                                         <i className="fas fa-id-card-alt" style={{ marginRight: '5px' }}></i>
                                         Thông tin tài khoản
                                     </Link>
+                                    <Link className={cx('dropdown-item')} to="/my-orders">
+                                        <i className="fas fa-shopping-bag" style={{ marginRight: '5px' }}></i>
+                                        Các đơn của tôi
+                                    </Link>
                                     <Link className={cx('dropdown-item')} to="/change-password">
                                         <i className="fas fa-key" style={{ marginRight: '5px' }}></i>
                                         Đổi mật khẩu
@@ -95,11 +99,8 @@ function Header() {
                             </li>
                         )}
 
-                        <li className={cx('nav-item')}>
-                            <Link to="/cart" className={cx('nav-link')}>
-                                <i className="fa-solid fa-cart-shopping"></i>
-                                <span className={cx('cart-count')}>{cartCount}</span>
-                            </Link>
+                        <li className={cx('nav-item', 'cart-container')}>
+                            <BadgeCart />
                         </li>
                     </ul>
                 </div>
