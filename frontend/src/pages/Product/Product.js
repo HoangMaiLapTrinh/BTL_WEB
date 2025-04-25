@@ -16,6 +16,7 @@ const Product = () => {
     const categoryId = searchParams.get('category');
     const brandParam = searchParams.get('brand');
     const genderParam = searchParams.get('gender');
+    const searchParam = searchParams.get('search');
     const navigate = useNavigate();
     const location = useLocation();
     
@@ -28,6 +29,9 @@ const Product = () => {
     // Danh sách các thương hiệu và giới tính từ dữ liệu sản phẩm
     const [brands, setBrands] = useState([]);
     const genders = ['Nam', 'Nữ', 'Unisex'];
+
+    // Thêm state cho kết quả tìm kiếm
+    const [searchTerm, setSearchTerm] = useState('');
 
     // Lấy dữ liệu sản phẩm khi component mount
     useEffect(() => {
@@ -120,11 +124,58 @@ const Product = () => {
         }
     }, [brandParam, genderParam, brands]);
     
-    // Lọc sản phẩm khi các lựa chọn lọc thay đổi
+    // Cập nhật useEffect xử lý URL thay đổi (sau useEffect hiện tại)
+    useEffect(() => {
+        // Đặt searchTerm từ URL parameter
+        if (searchParam) {
+            setSearchTerm(searchParam);
+        } else {
+            setSearchTerm('');
+        }
+    }, [searchParam]);
+    
+    // Cập nhật useEffect lọc sản phẩm để cải thiện tìm kiếm
     useEffect(() => {
         if (products.length === 0) return;
         
         let result = [...products];
+        
+        // Lọc theo từ khóa tìm kiếm
+        if (searchTerm) {
+            // Tách từ khóa tìm kiếm thành các từ riêng lẻ
+            const searchWords = searchTerm.toLowerCase().split(/\s+/).filter(word => word.length > 0);
+            
+            // Tính điểm độ phù hợp cho mỗi sản phẩm
+            result = result.map(product => {
+                const productName = product.name ? product.name.toLowerCase() : '';
+                const productDesc = product.description ? product.description.toLowerCase() : '';
+                
+                // Điểm độ phù hợp
+                let relevanceScore = 0;
+                
+                // Tính điểm cho mỗi từ trong từ khóa tìm kiếm
+                searchWords.forEach(word => {
+                    // Từ có trong tên sản phẩm được ưu tiên cao hơn
+                    if (productName.includes(word)) {
+                        relevanceScore += 2;
+                    } 
+                    // Từ có trong mô tả sản phẩm
+                    else if (productDesc.includes(word)) {
+                        relevanceScore += 1;
+                    }
+                });
+                
+                return {
+                    ...product,
+                    relevanceScore
+                };
+            });
+            
+            // Lọc các sản phẩm có điểm > 0 và sắp xếp theo điểm phù hợp
+            result = result
+                .filter(product => product.relevanceScore > 0)
+                .sort((a, b) => b.relevanceScore - a.relevanceScore);
+        }
         
         // Lọc theo giá
         result = result.filter(product => 
@@ -169,7 +220,7 @@ const Product = () => {
         }
         
         setFilteredProducts(result);
-    }, [products, priceRange, selectedBrands, selectedGender, sortOption]);
+    }, [products, priceRange, selectedBrands, selectedGender, sortOption, searchTerm]);
 
     const handleProductClick = (productId) => {
         navigate(`/product/${productId}`);
@@ -226,6 +277,11 @@ const Product = () => {
             params.set('category', categoryId);
         }
         
+        // Thêm search param nếu có
+        if (searchTerm) {
+            params.set('search', searchTerm);
+        }
+        
         const newUrl = `/products${params.toString() ? `?${params.toString()}` : ''}`;
         navigate(newUrl, { replace: true });
     };
@@ -247,13 +303,16 @@ const Product = () => {
         setSelectedBrands([]);
         setSelectedGender('');
         setSortOption('default');
+        setSearchTerm(''); // Xóa từ khóa tìm kiếm
         // Cập nhật URL để xóa các tham số lọc
         navigate('/products', { replace: true });
     };
 
     // Tạo tiêu đề trang dựa trên các bộ lọc
     const getPageTitle = () => {
-        if (selectedGender && selectedGender === 'Nam') {
+        if (searchTerm) {
+            return `Kết quả tìm kiếm cho "${searchTerm}"`;
+        } else if (selectedGender && selectedGender === 'Nam') {
             return 'Sản phẩm dành cho Nam';
         } else if (selectedGender && selectedGender === 'Nữ') {
             return 'Sản phẩm dành cho Nữ';
