@@ -275,19 +275,287 @@
     }
 }
 
+@media (max-width: 1200px) {
+    .checkoutPage {
+        padding: 60px 0;
+        
+        .container {
+            max-width: 992px;
+        }
+        
+        .pageTitle {
+            margin-bottom: 30px;
+            
+            h1 {
+                font-size: 28px;
+            }
+        }
+        
+        .checkoutBilling, .checkoutOrder {
+            padding: 25px;
+        }
+        
+        .checkoutBilling h2 {
+            font-size: 22px;
+            margin-bottom: 25px;
+        }
+        
+        .checkoutOrder h4 {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+    }
+}
+
+@media (max-width: 992px) {
+    .checkoutPage {
+        padding: 50px 0;
+        
+        .container {
+            max-width: 768px;
+        }
+        
+        .pageTitle {
+            margin-bottom: 25px;
+            
+            h1 {
+                font-size: 26px;
+            }
+        }
+        
+        .checkoutBilling, .checkoutOrder {
+            padding: 20px;
+        }
+        
+        .checkoutBilling h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .formGroup {
+            margin-bottom: 15px;
+            
+            label {
+                margin-bottom: 6px;
+                font-size: 14px;
+            }
+            
+            input, textarea {
+                padding: 10px 12px;
+                font-size: 14px;
+            }
+            
+            textarea {
+                min-height: 80px;
+            }
+        }
+        
+        .orderItem .productInfo .productThumb {
+            width: 50px;
+            height: 50px;
+            margin-right: 12px;
+        }
+    }
+}
+
 @media (max-width: 768px) {
     .checkoutPage {
+        padding: 40px 0;
+        
+        .container {
+            padding: 0 12px;
+        }
+        
+        .pageTitle {
+            margin-bottom: 20px;
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
+        
         .col8, .col4, .col6 {
             flex: 0 0 100%;
             max-width: 100%;
         }
 
         .col4 {
-            margin-top: 30px;
+            margin-top: 20px;
         }
         
         .checkoutOrder {
             position: static;
+            margin-bottom: 30px;
+        }
+        
+        .checkoutBilling {
+            margin-bottom: 20px;
+        }
+        
+        .checkoutBilling h2 {
+            font-size: 18px;
+            margin-bottom: 18px;
+        }
+        
+        .checkoutOrder h4 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+        }
+        
+        .orderTotal ul li {
+            padding: 10px 0;
+            font-size: 14px;
+            
+            &.totalAmount {
+                font-size: 16px;
+                padding-top: 12px;
+                margin-top: 8px;
+            }
+        }
+        
+        .orderBtn .siteBtn {
+            padding: 12px;
+            font-size: 15px;
+        }
+    }
+}
+
+@media (max-width: 576px) {
+    .checkoutPage {
+        padding: 30px 0;
+        
+        .container {
+            padding: 0 10px;
+        }
+        
+        .pageTitle {
+            margin-bottom: 15px;
+            
+            h1 {
+                margin-top: 10%;
+                font-size: 22px;
+            }
+        }
+        
+        .checkoutBilling, .checkoutOrder {
+            padding: 15px;
+        }
+        
+        .checkoutBilling h2 {
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        
+        .formGroup {
+            margin-bottom: 12px;
+            
+            label {
+                margin-bottom: 5px;
+                font-size: 13px;
+            }
+            
+            input, textarea {
+                padding: 8px 10px;
+                font-size: 13px;
+            }
+        }
+        
+        .paymentOptions .paymentOption {
+            margin-bottom: 8px;
+            
+            label {
+                font-size: 13px;
+            }
+        }
+        
+        .orderItem {
+            padding: 8px 0;
+            
+            .productInfo {
+                .productThumb {
+                    width: 45px;
+                    height: 45px;
+                    margin-right: 10px;
+                    
+                    .quantity {
+                        width: 18px;
+                        height: 18px;
+                        font-size: 10px;
+                    }
+                }
+                
+                .productName {
+                    font-size: 13px;
+                    max-width: 150px;
+                }
+            }
+            
+            .productPrice {
+                font-size: 13px;
+            }
+        }
+        
+        .orderTotal ul li {
+            padding: 8px 0;
+            font-size: 13px;
+            
+            &.totalAmount {
+                font-size: 15px;
+                padding-top: 10px;
+            }
+        }
+        
+        .orderBtn .siteBtn {
+            padding: 10px;
+            font-size: 14px;
+        }
+        
+        .backToCart .backBtn {
+            font-size: 13px;
+        }
+    }
+}
+
+@media (max-width: 375px) {
+    .checkoutPage {
+        .checkoutBilling h2 {
+            font-size: 15px;
+        }
+        
+        .formGroup {
+            label {
+                font-size: 12px;
+            }
+            
+            input, textarea {
+                padding: 8px;
+                font-size: 12px;
+            }
+        }
+        
+        .orderItem {
+            .productInfo .productName {
+                max-width: 120px;
+                font-size: 12px;
+            }
+            
+            .productPrice {
+                font-size: 12px;
+            }
+        }
+        
+        .orderTotal ul li {
+            font-size: 12px;
+            
+            &.totalAmount {
+                font-size: 14px;
+            }
+        }
+        
+        .orderBtn .siteBtn {
+            padding: 10px;
+            font-size: 13px;
         }
     }
 } 

@@ -27,6 +27,12 @@ function ProductDetail() {
     const [isLoadingComments, setIsLoadingComments] = useState(true);
     const [slideDirection, setSlideDirection] = useState(''); // 'next' hoặc 'prev' để xác định hướng animation
     const [isAnimating, setIsAnimating] = useState(false);
+    const [touchStart, setTouchStart] = useState(null);
+    const [touchEnd, setTouchEnd] = useState(null);
+    
+    // Ngưỡng tối thiểu cho thao tác vuốt
+    const minSwipeDistance = 50;
+    
     const openModal = () => {
         setIsModalOpen(true);
         // Ngăn scroll khi modal mở
@@ -506,6 +512,32 @@ function ProductDetail() {
         };
     }, [isModalOpen]);
 
+    // Xử lý thao tác vuốt trên thiết bị di động
+    const onTouchStart = (e) => {
+        setTouchEnd(null);
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+    
+    const onTouchMove = (e) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+    
+    const onTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+        const distance = touchStart - touchEnd;
+        const isSwipe = Math.abs(distance) > minSwipeDistance;
+        
+        if (isSwipe) {
+            if (distance > 0) {
+                // Vuốt sang trái -> hiển thị hình ảnh tiếp theo
+                handleNextImage();
+            } else {
+                // Vuốt sang phải -> hiển thị hình ảnh trước đó
+                handlePrevImage();
+            }
+        }
+    };
+
     if (loading) {
         return <div className={cx('loading')}>Đang tải...</div>;
     }
@@ -525,17 +557,33 @@ function ProductDetail() {
         <div className={cx('product-detail')} ref={topRef}>
             <div className={cx('product-container')}>
                 <div className={cx('product-images')}>
-                    <div className={cx('main-image')}>
-                        <button className={cx('nav-btn', 'left')} onClick={handlePrevImage}>
-                            &lt;
-                        </button>
+                    <div 
+                        className={cx('main-image')} 
+                        onClick={openModal}
+                        onTouchStart={onTouchStart}
+                        onTouchMove={onTouchMove}
+                        onTouchEnd={onTouchEnd}
+                    >
                         <img
                             src={product.images[mainImageIndex]?.url || 'https://via.placeholder.com/400'}
                             alt={product.name}
-                            onClick={openModal}
-                            className={cx('zoomable-image')}
                         />
-                        <button className={cx('nav-btn', 'right')} onClick={handleNextImage}>
+                        <button 
+                            className={cx('nav-btn', 'left')} 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handlePrevImage();
+                            }}
+                        >
+                            &lt;
+                        </button>
+                        <button 
+                            className={cx('nav-btn', 'right')} 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleNextImage();
+                            }}
+                        >
                             &gt;
                         </button>
                     </div>
@@ -747,6 +795,7 @@ function ProductDetail() {
                                 'slide-prev': slideDirection === 'prev' && isAnimating,
                             })}
                         >
+                            
                             {visibleSimilarProducts && visibleSimilarProducts.map(similarProduct => (
                                 <div
                                     className={cx('similar-product-item')} 

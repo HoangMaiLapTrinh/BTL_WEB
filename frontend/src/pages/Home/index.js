@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import classNames from 'classnames/bind';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import * as styles from './Home.module.scss';
 import { useSlider } from './home.js';
 import ProductItem from '../../components/ProductItem/index.js';
 import { API_URL } from '../../services/authService.js';
 import { showToast } from '../../components/Toast/index.js';
+import '@fortawesome/fontawesome-free/css/all.min.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 // Import logo images
 import logoAdidas from '../../img/Logo/logo_adidas.png';
 import logoBalenciaga from '../../img/Logo/logo_balenciaga.png';
@@ -20,7 +23,16 @@ const cx = classNames.bind(styles);
 
 function Home() {
     const navigate = useNavigate();
-    const { currentSlide, slides, goToSlide, goToPrevSlide, goToNextSlide } = useSlider();
+    const { 
+        currentSlide, 
+        slides, 
+        goToSlide, 
+        goToPrevSlide, 
+        goToNextSlide,
+        handleTouchStart,
+        handleTouchMove,
+        handleTouchEnd
+    } = useSlider();
     const [products, setProducts] = useState([]);
     const [nikeProducts, setNikeProducts] = useState([]);
     const [gucciProducts, setGucciProducts] = useState([]);
@@ -37,6 +49,12 @@ function Home() {
         { name: 'Nike', logo: logoNike },
         { name: 'Prada', logo: logoPrada }
     ];
+
+    // Refs cho các container sản phẩm
+    const productsRef = useRef(null);
+    const nikeProductsRef = useRef(null);
+    const gucciProductsRef = useRef(null);
+    const diorProductsRef = useRef(null);
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -56,12 +74,6 @@ function Home() {
                     setNikeProducts(nikeProds);
                     setGucciProducts(gucciProds);
                     setDiorProducts(diorProds);
-                    showToast({
-                        title: "Thành công",
-                        message: "Đã tải sản phẩm thành công!",
-                        type: "success",
-                        duration: 2000
-                    });
                 }
                 setLoading(false);
             } catch (error) {
@@ -81,29 +93,138 @@ function Home() {
     }, []);
 
     const handleBrandClick = (brandName) => {
-        // Cuộn mượt lên đầu trang với hiệu ứng
         window.scrollTo({
             top: 0,
             behavior: 'smooth'
         });
         
-        // Delay chuyển hướng để cho hoạt ảnh cuộn hoàn thành
         setTimeout(() => {
             navigate(`/products?brand=${brandName}`);
-        }, 600); // 600ms để cho hiệu ứng cuộn hoàn thành
+        }, 600);
+    };
+
+    // Hàm scroll sản phẩm
+    const scrollProducts = (ref, direction) => {
+        if (!ref.current) return;
+        
+        const container = ref.current;
+        const scrollAmount = container.clientWidth;
+        const maxScroll = container.scrollWidth - container.clientWidth;
+        
+        if (direction === 'right') {
+            if (container.scrollLeft >= maxScroll - 10) {
+                // Nếu đã ở cuối, quay lại đầu
+                container.scrollTo({ left: 0, behavior: 'smooth' });
+            } else {
+                container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+            }
+        } else {
+            if (container.scrollLeft <= 10) {
+                // Nếu đã ở đầu, chuyển đến cuối
+                container.scrollTo({ left: maxScroll, behavior: 'smooth' });
+            } else {
+                container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+            }
+        }
+    };
+
+    // Component hiển thị danh sách sản phẩm với nút điều khiển
+    const ProductsSection = ({ title, products, loading, error, containerRef }) => {
+        // Hiển thị tối đa 8 sản phẩm thay vì 5 để có thêm sản phẩm để vuốt trên mobile
+        const maxProducts = products?.slice(0, 8) || [];
+        const [isUserScrolling, setIsUserScrolling] = useState(false);
+        const scrollTimeoutRef = useRef(null);
+        
+        // Thêm xử lý touch cho mobile
+        const handleTouchStart = (e) => {
+            // Người dùng bắt đầu vuốt, đánh dấu đang vuốt
+            setIsUserScrolling(true);
+            
+            // Hủy timeout trước đó nếu có
+            if (scrollTimeoutRef.current) {
+                clearTimeout(scrollTimeoutRef.current);
+            }
+        };
+        
+        const handleTouchEnd = (e) => {
+            // Sau khi kết thúc vuốt, đặt timeout để duy trì vị trí cuộn hiện tại
+            scrollTimeoutRef.current = setTimeout(() => {
+                setIsUserScrolling(false);
+            }, 10000); // Đợi 10 giây trước khi reset trạng thái vuốt
+        };
+        
+        // Thêm sự kiện scroll để xử lý khi người dùng scroll chuột trên desktop
+        const handleScroll = () => {
+            setIsUserScrolling(true);
+            
+            // Hủy timeout trước đó nếu có
+            if (scrollTimeoutRef.current) {
+                clearTimeout(scrollTimeoutRef.current);
+            }
+            
+            // Đặt timeout để reset trạng thái sau khi scroll dừng
+            scrollTimeoutRef.current = setTimeout(() => {
+                setIsUserScrolling(false);
+            }, 10000); // Đợi 10 giây trước khi reset trạng thái vuốt
+        };
+        
+        // Cleanup timer khi component unmount
+        useEffect(() => {
+            return () => {
+                if (scrollTimeoutRef.current) {
+                    clearTimeout(scrollTimeoutRef.current);
+                }
+            };
+        }, []);
+        
+        return (
+            <div>
+                <h2 className={cx('section-title')}>{title}</h2>
+                <div className={cx('products-wrapper')}>
+                    <div 
+                        className={cx('products-grid')} 
+                        ref={containerRef}
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={handleTouchEnd}
+                        onScroll={handleScroll}
+                        data-user-scrolling={isUserScrolling}
+                    >
+                        {loading ? (
+                            <div className={cx('loading')}>Đang tải...</div>
+                        ) : error ? (
+                            <div className={cx('error')}>Có lỗi xảy ra: {error}</div>
+                        ) : maxProducts.length === 0 ? (
+                            <div className={cx('no-products')}>Không có sản phẩm nào</div>
+                        ) : (
+                            maxProducts.map((product) => (
+                                <div key={product._id} className={cx('product-item')}>
+                                    <ProductItem product={product} />
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
     };
 
     return (
         <div className={cx('wrapper')}>
-            <div className={styles.slider}>
+            <div className={cx('slider')}>
                 <div 
-                    className={styles.slides}
+                    className={cx('slides')}
                     style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
                 >
                     {slides.map((slide, index) => (
-                        <div key={index} className={styles.slide}>
+                        <div 
+                            key={index} 
+                            className={`${cx('slide')} ${currentSlide === index ? cx('active') : ''}`}
+                        >
                             <img src={slide.image} alt={`Slide ${index + 1}`} />
-                            <div className={styles.slideContent}>
+                            <div className={cx('slideContent')}>
                                 <h2>{slide.title}</h2>
                                 <p>{slide.description}</p>
                                 <button>{slide.buttonText}</button>
@@ -112,86 +233,65 @@ function Home() {
                     ))}
                 </div>
 
-                <div className={styles.controls}>
-                    <div className={styles.control} onClick={goToPrevSlide}>
-                        &lt;
+                <div className={cx('controls')}>
+                    <div className={cx('control')} onClick={goToPrevSlide} aria-label="Slide trước">
+                        <FontAwesomeIcon icon={faChevronLeft} />
                     </div>
-                    <div className={styles.control} onClick={goToNextSlide}>
-                        &gt;
+                    <div className={cx('control')} onClick={goToNextSlide} aria-label="Slide sau">
+                        <FontAwesomeIcon icon={faChevronRight} />
                     </div>
                 </div>
 
-                <div className={styles.dots}>
+                <div className={cx('dots')}>
                     {slides.map((_, index) => (
                         <div
                             key={index}
-                            className={`${styles.dot} ${currentSlide === index ? styles.active : ''}`}
+                            className={`${cx('dot')} ${currentSlide === index ? cx('active') : ''}`}
                             onClick={() => goToSlide(index)}
+                            aria-label={`Slide ${index + 1}`}
                         />
                     ))}
                 </div>
             </div>
             
             <div className={cx('container')}>
-                <h2 className={cx('section-title')}>Sản phẩm nổi bật</h2>
+                {/* Sản phẩm nổi bật */}
+                <ProductsSection 
+                    title="Sản phẩm nổi bật" 
+                    products={products} 
+                    loading={loading} 
+                    error={error} 
+                    containerRef={productsRef}
+                />
                 
-                {loading ? (
-                    <div className={cx('loading')}>Đang tải sản phẩm...</div>
-                ) : error ? (
-                    <div className={cx('error')}>{error}</div>
-                ) : (
-                    <div className={cx('products-grid')}>
-                        {products.slice(0, 5).map(product => (
-                            <ProductItem key={product._id} product={product} />
-                        ))}
-                    </div>
-                )}
+                {/* Nike products */}
+                <ProductsSection 
+                    title="Nike" 
+                    products={nikeProducts} 
+                    loading={loading} 
+                    error={error} 
+                    containerRef={nikeProductsRef}
+                />
+                
+                {/* Gucci products */}
+                <ProductsSection 
+                    title="Gucci" 
+                    products={gucciProducts} 
+                    loading={loading} 
+                    error={error} 
+                    containerRef={gucciProductsRef}
+                />
+                
+                {/* Dior products */}
+                <ProductsSection 
+                    title="Dior" 
+                    products={diorProducts} 
+                    loading={loading} 
+                    error={error} 
+                    containerRef={diorProductsRef}
+                />
 
-                <h2 className={cx('section-title')}>Nike</h2>
-                {loading ? (
-                    <div className={cx('loading')}>Đang tải sản phẩm...</div>
-                ) : error ? (
-                    <div className={cx('error')}>{error}</div>
-                ) : nikeProducts.length === 0 ? (
-                    <div className={cx('no-products')}>Không có sản phẩm Nike</div>
-                ) : (
-                    <div className={cx('products-grid')}>
-                        {nikeProducts.slice(0, 5).map(product => (
-                            <ProductItem key={product._id} product={product} />
-                        ))}
-                    </div>
-                )}
-
-                <h2 className={cx('section-title')}>Gucci</h2>
-                {loading ? (
-                    <div className={cx('loading')}>Đang tải sản phẩm...</div>
-                ) : error ? (
-                    <div className={cx('error')}>{error}</div>
-                ) : gucciProducts.length === 0 ? (
-                    <div className={cx('no-products')}>Không có sản phẩm Gucci</div>
-                ) : (
-                    <div className={cx('products-grid')}>
-                        {gucciProducts.slice(0, 5).map(product => (
-                            <ProductItem key={product._id} product={product} />
-                        ))}
-                    </div>
-                )}
-
-                <h2 className={cx('section-title')}>Dior</h2>
-                {loading ? (
-                    <div className={cx('loading')}>Đang tải sản phẩm...</div>
-                ) : error ? (
-                    <div className={cx('error')}>{error}</div>
-                ) : diorProducts.length === 0 ? (
-                    <div className={cx('no-products')}>Không có sản phẩm Dior</div>
-                ) : (
-                    <div className={cx('products-grid')}>
-                        {diorProducts.slice(0, 5).map(product => (
-                            <ProductItem key={product._id} product={product} />
-                        ))}
-                    </div>
-                )}
-
+                {/* Brands */}
                 <h2 className={cx('section-title')}>Thương hiệu của chúng tôi</h2>
                 <div className={cx('brands-container')}>
                     {brands.map((brand, index) => (
@@ -199,6 +299,7 @@ function Home() {
                             key={index} 
                             className={cx('brand-item')}
                             onClick={() => handleBrandClick(brand.name)}
+                            aria-label={`Thương hiệu ${brand.name}`}
                         >
                             <img src={brand.logo} alt={brand.name} />
                         </div>

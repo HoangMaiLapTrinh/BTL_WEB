@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import * as styles from './MyOrders.module.scss';
 import classNames from 'classnames/bind';
@@ -45,6 +45,7 @@ const MyOrders = () => {
   const [cancelLoading, setCancelLoading] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const cancelOrderBoxRef = useRef(null);
   
   useEffect(() => {
     if (!user) {
@@ -108,7 +109,13 @@ const MyOrders = () => {
   const handleCancelOrder = async () => {
     if (!selectedOrderId) return;
     
-    setCancelLoading(true);
+    // Thay đổi trạng thái nút khi đang xử lý
+    const confirmBtn = document.querySelector(`#confirm-cancel-btn`);
+    if (confirmBtn) {
+      confirmBtn.textContent = 'Đang xử lý...';
+      confirmBtn.disabled = true;
+    }
+    
     try {
       const token = localStorage.getItem('token');
       
@@ -136,6 +143,9 @@ const MyOrders = () => {
         setOrders(orders.map(order => 
           order._id === selectedOrderId ? { ...order, orderStatus: 'Cancelled' } : order
         ));
+        
+        // Đóng form xác nhận
+        closeCancelConfirmation();
       } else {
         showToast({
           title: 'Lỗi',
@@ -153,8 +163,12 @@ const MyOrders = () => {
         duration: 3000
       });
     } finally {
-      setCancelLoading(false);
-      setSelectedOrderId(null);
+      // Reset trạng thái nút (nếu modal vẫn còn)
+      const confirmBtn = document.querySelector(`#confirm-cancel-btn`);
+      if (confirmBtn) {
+        confirmBtn.textContent = 'Xác nhận hủy';
+        confirmBtn.disabled = false;
+      }
     }
   };
   
@@ -206,6 +220,121 @@ const MyOrders = () => {
   const canCancelOrder = (status) => {
     return status === 'Processing';
   };
+  
+  // Hiển thị modal xác nhận hủy đơn hàng
+  useEffect(() => {
+    if (showConfirmModal) {
+      // Nếu modal chưa tồn tại và cần hiển thị
+      if (!document.getElementById("floating-cancel-box")) {
+        // Tạo modal container
+        const cancelBox = document.createElement('div');
+        cancelBox.id = "floating-cancel-box";
+        cancelBox.className = cx('floating-cancel-box');
+        
+        // Tính toán vị trí hiển thị ban đầu (giữa màn hình)
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        const boxWidth = 350; // Chiều rộng ước tính của box
+        const boxHeight = 220; // Chiều cao ước tính của box
+        
+        cancelBox.style.left = `${(windowWidth - boxWidth) / 2}px`;
+        cancelBox.style.top = `${(windowHeight - boxHeight) / 2}px`;
+        
+        // Tạo nội dung HTML cho modal
+        cancelBox.innerHTML = `
+          <div class="${cx('cancel-box-header')}">
+            <h3>Xác nhận hủy đơn hàng</h3>
+            <button class="${cx('close-cancel-btn')}">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="${cx('cancel-box-content')}">
+            <p>Bạn có chắc chắn muốn hủy đơn hàng này không?</p>
+            <p>Lưu ý: Hành động này không thể hoàn tác sau khi xác nhận.</p>
+          </div>
+          <div class="${cx('cancel-box-footer')}">
+            <button class="${cx('close-button')}" id="close-cancel-btn">
+              Đóng
+            </button>
+            <button class="${cx('confirm-button')}" id="confirm-cancel-btn">
+              Xác nhận hủy
+            </button>
+          </div>
+        `;
+        
+        // Thêm vào body
+        document.body.appendChild(cancelBox);
+        
+        // Lưu reference
+        cancelOrderBoxRef.current = cancelBox;
+        
+        // Thêm sự kiện đóng modal
+        const closeBtn = cancelBox.querySelector(`.${cx('close-cancel-btn')}`);
+        if (closeBtn) {
+          closeBtn.addEventListener('click', closeCancelConfirmation);
+        }
+        
+        const closeCancelBtn = cancelBox.querySelector('#close-cancel-btn');
+        if (closeCancelBtn) {
+          closeCancelBtn.addEventListener('click', closeCancelConfirmation);
+        }
+        
+        // Thêm sự kiện xác nhận hủy đơn hàng
+        const confirmBtn = cancelBox.querySelector('#confirm-cancel-btn');
+        if (confirmBtn) {
+          confirmBtn.addEventListener('click', handleCancelOrder);
+        }
+        
+        // Thêm sự kiện kéo thả
+        const header = cancelBox.querySelector(`.${cx('cancel-box-header')}`);
+        if (header) {
+          let isDragging = false;
+          let offsetX, offsetY;
+          
+          // Sự kiện mousedown để bắt đầu kéo
+          header.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            const rect = cancelBox.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+            
+            // Thêm class active khi đang kéo
+            header.classList.add(cx('dragging'));
+          });
+          
+          // Sự kiện mousemove để theo dõi di chuyển
+          document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            
+            const newX = e.clientX - offsetX;
+            const newY = e.clientY - offsetY;
+            
+            // Giới hạn không kéo ra ngoài màn hình
+            const maxX = window.innerWidth - cancelBox.offsetWidth;
+            const maxY = window.innerHeight - cancelBox.offsetHeight;
+            
+            cancelBox.style.left = `${Math.max(0, Math.min(newX, maxX))}px`;
+            cancelBox.style.top = `${Math.max(0, Math.min(newY, maxY))}px`;
+          });
+          
+          // Sự kiện mouseup để kết thúc kéo
+          document.addEventListener('mouseup', () => {
+            if (isDragging) {
+              isDragging = false;
+              header.classList.remove(cx('dragging'));
+            }
+          });
+        }
+      }
+    } else {
+      // Nếu cần ẩn modal
+      const cancelBox = document.getElementById("floating-cancel-box");
+      if (cancelBox) {
+        cancelBox.remove();
+        cancelOrderBoxRef.current = null;
+      }
+    }
+  }, [showConfirmModal, selectedOrderId]);
   
   return (
     <div className={cx('myOrdersPage')}>
@@ -319,44 +448,6 @@ const MyOrders = () => {
           </div>
         )}
       </div>
-      
-      {/* Modal xác nhận hủy đơn hàng */}
-      {showConfirmModal && (
-        <div className={cx('modalOverlay')}>
-          <div className={cx('confirmModal')}>
-            <div className={cx('modalHeader')}>
-              <h3>Xác nhận hủy đơn hàng</h3>
-              <button 
-                className={cx('closeButton')}
-                onClick={closeCancelConfirmation}
-                disabled={cancelLoading}
-              >
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-            <div className={cx('modalBody')}>
-              <p>Bạn có chắc chắn muốn hủy đơn hàng này không?</p>
-              <p>Lưu ý: Hành động này không thể hoàn tác sau khi xác nhận.</p>
-            </div>
-            <div className={cx('modalFooter')}>
-              <button 
-                className={cx('cancelButton')}
-                onClick={closeCancelConfirmation}
-                disabled={cancelLoading}
-              >
-                Đóng
-              </button>
-              <button 
-                className={cx('confirmButton')}
-                onClick={handleCancelOrder}
-                disabled={cancelLoading}
-              >
-                {cancelLoading ? 'Đang xử lý...' : 'Xác nhận hủy'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

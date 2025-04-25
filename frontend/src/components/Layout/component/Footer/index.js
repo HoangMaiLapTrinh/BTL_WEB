@@ -37,8 +37,8 @@ const Footer = () => {
                   <div className={cx('f_widget', 'about-widget')}>
                     <h3 className={cx('f-title', 'f_600', 'f_size_18')}>Member</h3>
                     <ul className={cx('f_list')}>
-                      <li><Link to="#">Phan Anh Tuấn</Link></li>
-                      <li><Link to="#">Nguyễn Đức Vương</Link></li>
+                      <li><Link to="#">Nguyễn Trần Hữu Thắng</Link></li>
+                      <li><Link to="#">Nguyễn Văn Chương</Link></li>
                       <li><Link to="#">Mai Lê Huy Hoàng</Link></li>
                     </ul>
                   </div>
@@ -79,10 +79,10 @@ const Footer = () => {
           <div className={cx('container')}>
             <div className={cx('row')}>
               <div className="col-lg-6 col-sm-7">
-                <p>© Nhóm 3</p>
+                <p>© Nhóm 2</p>
               </div>
               <div className="col-lg-6 col-sm-5">
-                <p>Made by <Link to="#">SHOP Đồng Hồ</Link></p>
+                <p>Made by <Link to="#">SHOP Team2hand</Link></p>
               </div>
             </div>
           </div>

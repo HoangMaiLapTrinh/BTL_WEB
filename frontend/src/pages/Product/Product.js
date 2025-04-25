@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import classNames from 'classnames/bind';
 import * as styles from './Product.module.scss';
 import { getProducts, getProductsByCategory } from '../../services/productService.js';
 import { showToast } from '../../components/Toast/index.js';
+import '@fortawesome/fontawesome-free/css/all.min.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFilter, faTimes, faChevronDown } from '@fortawesome/free-solid-svg-icons';
 
 const cx = classNames.bind(styles);
 
@@ -20,6 +23,9 @@ const Product = () => {
     const navigate = useNavigate();
     const location = useLocation();
     
+    // Thêm state để kiểm soát hiển thị bộ lọc trên mobile
+    const [showFiltersMobile, setShowFiltersMobile] = useState(false);
+    
     // Các state cho bộ lọc
     const [priceRange, setPriceRange] = useState({ min: 0, max: 100000000 });
     const [selectedBrands, setSelectedBrands] = useState([]);
@@ -32,6 +38,377 @@ const Product = () => {
 
     // Thêm state cho kết quả tìm kiếm
     const [searchTerm, setSearchTerm] = useState('');
+
+    // State cho hiển thị filter sidebar trên mobile
+    const filterButtonRef = useRef(null);
+    const filterBoxRef = useRef(null);
+    
+    // State cho việc hiển thị các section trong filter
+    const [expandedSections, setExpandedSections] = useState({
+        price: true,
+        brand: true,
+        gender: true,
+        sort: true
+    });
+    
+    // Toggle section trong filter
+    const toggleSection = (section) => {
+        setExpandedSections(prev => ({
+            ...prev,
+            [section]: !prev[section]
+        }));
+    };
+    
+    // Toggle hiển thị bộ lọc trên mobile
+    const toggleFiltersMobile = () => {
+        setShowFiltersMobile(prev => !prev);
+    };
+    
+    // Tạo nút filter cố định tương tự như toast container
+    useEffect(() => {
+        // Kiểm tra nếu nút filter đã tồn tại
+        if (!document.getElementById("fixed-filter-button")) {
+            // Tạo nút filter
+            const button = document.createElement('button');
+            button.id = "fixed-filter-button";
+            button.className = cx('filter-toggle-mobile');
+            
+            // Thêm icon và label
+            button.innerHTML = `
+                <i class="fas ${showFiltersMobile ? 'fa-times' : 'fa-filter'}"></i>
+                <span class="${cx('filter-label')}">BỘ LỌC</span>
+            `;
+            
+            // Gắn sự kiện click
+            button.addEventListener('click', toggleFiltersMobile);
+            
+            // Thêm vào body
+            document.body.appendChild(button);
+            
+            // Lưu reference
+            filterButtonRef.current = button;
+        }
+        
+        // Cập nhật icon khi state thay đổi
+        if (filterButtonRef.current) {
+            const iconElement = filterButtonRef.current.querySelector('i');
+            if (iconElement) {
+                iconElement.className = `fas ${showFiltersMobile ? 'fa-times' : 'fa-filter'}`;
+            }
+        }
+        
+        // Dọn dẹp khi component unmount
+        return () => {
+            // Chỉ xóa nút nếu component unmount
+            const filterButton = document.getElementById("fixed-filter-button");
+            if (filterButton) {
+                filterButton.remove();
+            }
+        };
+    }, [showFiltersMobile]);
+    
+    // Tạo filter box di động giống toast
+    useEffect(() => {
+        if (showFiltersMobile) {
+            // Nếu filter box chưa tồn tại và cần hiển thị
+            if (!document.getElementById("floating-filter-box")) {
+                // Tạo filter box container
+                const filterBox = document.createElement('div');
+                filterBox.id = "floating-filter-box";
+                filterBox.className = cx('floating-filter-box');
+                
+                // Tạo nội dung HTML cho filter box
+                filterBox.innerHTML = `
+                    <div class="${cx('filter-box-header')}">
+                        <h3>Bộ lọc sản phẩm</h3>
+                        <button class="${cx('close-filter-btn')}">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="${cx('filter-box-content')}">
+                        <!-- Khoảng giá -->
+                        <div class="${cx('filter-section')}">
+                            <div class="${cx('filter-section-header')}" data-section="price">
+                                <h4>Khoảng giá</h4>
+                                <i class="fas fa-chevron-down ${expandedSections.price ? cx('rotate') : ''}"></i>
+                            </div>
+                            <div class="${cx('filter-section-content', {'collapsed': !expandedSections.price})}">
+                                <div class="${cx('price-inputs')}">
+                                    <div class="${cx('price-input')}">
+                                        <label>Từ:</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value="${priceRange.min}"
+                                            id="price-min"
+                                        />
+                                    </div>
+                                    <div class="${cx('price-input')}">
+                                        <label>Đến:</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value="${priceRange.max}"
+                                            id="price-max"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Thương hiệu -->
+                        <div class="${cx('filter-section')}">
+                            <div class="${cx('filter-section-header')}" data-section="brand">
+                                <h4>Thương hiệu</h4>
+                                <i class="fas fa-chevron-down ${expandedSections.brand ? cx('rotate') : ''}"></i>
+                            </div>
+                            <div class="${cx('filter-section-content', {'collapsed': !expandedSections.brand})}">
+                                <div class="${cx('brand-list')}">
+                                    ${brands.map((brand, index) => `
+                                        <div class="${cx('brand-item')}">
+                                            <input
+                                                type="checkbox"
+                                                id="brand-${index}"
+                                                ${selectedBrands.some(selected => 
+                                                    selected.toLowerCase() === brand.toLowerCase()
+                                                ) ? 'checked' : ''}
+                                                data-brand="${brand}"
+                                            />
+                                            <label for="brand-${index}">${brand}</label>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Giới tính -->
+                        <div class="${cx('filter-section')}">
+                            <div class="${cx('filter-section-header')}" data-section="gender">
+                                <h4>Giới tính</h4>
+                                <i class="fas fa-chevron-down ${expandedSections.gender ? cx('rotate') : ''}"></i>
+                            </div>
+                            <div class="${cx('filter-section-content', {'collapsed': !expandedSections.gender})}">
+                                <div class="${cx('gender-list')}">
+                                    ${genders.map((gender, index) => `
+                                        <div class="${cx('gender-item')}">
+                                            <input
+                                                type="radio"
+                                                id="gender-${index}"
+                                                name="gender"
+                                                ${selectedGender === gender ? 'checked' : ''}
+                                                data-gender="${gender}"
+                                            />
+                                            <label for="gender-${index}">${gender}</label>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sắp xếp -->
+                        <div class="${cx('filter-section')}">
+                            <div class="${cx('filter-section-header')}" data-section="sort">
+                                <h4>Sắp xếp</h4>
+                                <i class="fas fa-chevron-down ${expandedSections.sort ? cx('rotate') : ''}"></i>
+                            </div>
+                            <div class="${cx('filter-section-content', {'collapsed': !expandedSections.sort})}">
+                                <select class="${cx('sort-select')}" id="sort-select">
+                                    <option value="default" ${sortOption === 'default' ? 'selected' : ''}>Mặc định</option>
+                                    <option value="price-asc" ${sortOption === 'price-asc' ? 'selected' : ''}>Giá: Thấp đến cao</option>
+                                    <option value="price-desc" ${sortOption === 'price-desc' ? 'selected' : ''}>Giá: Cao đến thấp</option>
+                                    <option value="name-asc" ${sortOption === 'name-asc' ? 'selected' : ''}>Tên: A-Z</option>
+                                    <option value="name-desc" ${sortOption === 'name-desc' ? 'selected' : ''}>Tên: Z-A</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="${cx('filter-box-footer')}">
+                        <button class="${cx('clear-filter')}" id="clear-filter-btn">
+                            Xóa bộ lọc
+                        </button>
+                        <button class="${cx('apply-filter')}" id="apply-filter-btn">
+                            Áp dụng & Đóng
+                        </button>
+                    </div>
+                `;
+                
+                // Thêm vào body
+                document.body.appendChild(filterBox);
+                
+                // Lưu reference
+                filterBoxRef.current = filterBox;
+                
+                // Thêm sự kiện đóng filter
+                const closeBtn = filterBox.querySelector(`.${cx('close-filter-btn')}`);
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', toggleFiltersMobile);
+                }
+                
+                // Thêm sự kiện cho apply filter
+                const applyBtn = filterBox.querySelector('#apply-filter-btn');
+                if (applyBtn) {
+                    applyBtn.addEventListener('click', () => {
+                        // Cập nhật giá
+                        const minInput = document.getElementById('price-min');
+                        const maxInput = document.getElementById('price-max');
+                        if (minInput && maxInput) {
+                            setPriceRange({
+                                min: parseInt(minInput.value) || 0,
+                                max: parseInt(maxInput.value) || 100000000
+                            });
+                        }
+                        
+                        // Cập nhật thương hiệu
+                        const checkedBrands = Array.from(document.querySelectorAll('input[data-brand]:checked'))
+                            .map(input => input.getAttribute('data-brand'));
+                        setSelectedBrands(checkedBrands);
+                        
+                        // Cập nhật giới tính
+                        const checkedGender = document.querySelector('input[data-gender]:checked');
+                        if (checkedGender) {
+                            setSelectedGender(checkedGender.getAttribute('data-gender'));
+                        } else {
+                            setSelectedGender('');
+                        }
+                        
+                        // Cập nhật sắp xếp
+                        const sortSelect = document.getElementById('sort-select');
+                        if (sortSelect) {
+                            setSortOption(sortSelect.value);
+                        }
+                        
+                        // Cập nhật URL
+                        updateUrlParams(
+                            checkedBrands.length > 0 ? checkedBrands[0] : null,
+                            checkedGender ? checkedGender.getAttribute('data-gender') : ''
+                        );
+                        
+                        // Đóng filter
+                        toggleFiltersMobile();
+                    });
+                }
+                
+                // Thêm sự kiện cho clear filter
+                const clearBtn = filterBox.querySelector('#clear-filter-btn');
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', () => {
+                        // Reset các giá trị trên form
+                        const minInput = document.getElementById('price-min');
+                        const maxInput = document.getElementById('price-max');
+                        if (minInput && maxInput) {
+                            minInput.value = 0;
+                            maxInput.value = 100000000;
+                        }
+                        
+                        // Bỏ chọn tất cả các thương hiệu
+                        document.querySelectorAll('input[data-brand]:checked').forEach(input => {
+                            input.checked = false;
+                        });
+                        
+                        // Bỏ chọn giới tính
+                        document.querySelectorAll('input[data-gender]:checked').forEach(input => {
+                            input.checked = false;
+                        });
+                        
+                        // Reset select box
+                        const sortSelect = document.getElementById('sort-select');
+                        if (sortSelect) {
+                            sortSelect.value = 'default';
+                        }
+                        
+                        // Clear filter
+                        clearFilters();
+                    });
+                }
+                
+                // Thêm sự kiện cho section headers
+                const sectionHeaders = filterBox.querySelectorAll(`.${cx('filter-section-header')}`);
+                sectionHeaders.forEach(header => {
+                    header.addEventListener('click', () => {
+                        const section = header.getAttribute('data-section');
+                        if (section) {
+                            toggleSection(section);
+                            const icon = header.querySelector('i');
+                            if (icon) {
+                                icon.classList.toggle(cx('rotate'));
+                            }
+                            const content = header.nextElementSibling;
+                            if (content) {
+                                content.classList.toggle(cx('collapsed'));
+                            }
+                        }
+                    });
+                });
+                
+                // Thêm sự kiện drag & drop cho filter box
+                let isDragging = false;
+                let offsetX, offsetY;
+                
+                const filterHeader = filterBox.querySelector(`.${cx('filter-box-header')}`);
+                if (filterHeader) {
+                    filterHeader.addEventListener('mousedown', (e) => {
+                        isDragging = true;
+                        offsetX = e.clientX - filterBox.getBoundingClientRect().left;
+                        offsetY = e.clientY - filterBox.getBoundingClientRect().top;
+                        filterBox.style.cursor = 'grabbing';
+                    });
+                    
+                    document.addEventListener('mousemove', (e) => {
+                        if (isDragging) {
+                            const x = e.clientX - offsetX;
+                            const y = e.clientY - offsetY;
+                            
+                            // Giới hạn trong viewport
+                            const maxX = window.innerWidth - filterBox.offsetWidth;
+                            const maxY = window.innerHeight - filterBox.offsetHeight;
+                            
+                            filterBox.style.left = `${Math.max(0, Math.min(x, maxX))}px`;
+                            filterBox.style.top = `${Math.max(0, Math.min(y, maxY))}px`;
+                        }
+                    });
+                    
+                    document.addEventListener('mouseup', () => {
+                        isDragging = false;
+                        if (filterBox) {
+                            filterBox.style.cursor = 'auto';
+                        }
+                    });
+                    
+                    // Touch events cho mobile
+                    filterHeader.addEventListener('touchstart', (e) => {
+                        isDragging = true;
+                        offsetX = e.touches[0].clientX - filterBox.getBoundingClientRect().left;
+                        offsetY = e.touches[0].clientY - filterBox.getBoundingClientRect().top;
+                    });
+                    
+                    document.addEventListener('touchmove', (e) => {
+                        if (isDragging) {
+                            const x = e.touches[0].clientX - offsetX;
+                            const y = e.touches[0].clientY - offsetY;
+                            
+                            // Giới hạn trong viewport
+                            const maxX = window.innerWidth - filterBox.offsetWidth;
+                            const maxY = window.innerHeight - filterBox.offsetHeight;
+                            
+                            filterBox.style.left = `${Math.max(0, Math.min(x, maxX))}px`;
+                            filterBox.style.top = `${Math.max(0, Math.min(y, maxY))}px`;
+                        }
+                    });
+                    
+                    document.addEventListener('touchend', () => {
+                        isDragging = false;
+                    });
+                }
+            }
+        } else {
+            // Nếu cần ẩn filter box
+            const filterBox = document.getElementById("floating-filter-box");
+            if (filterBox) {
+                filterBox.remove();
+                filterBoxRef.current = null;
+            }
+        }
+    }, [showFiltersMobile, expandedSections, brands, genders, selectedBrands, selectedGender, sortOption, priceRange]);
 
     // Lấy dữ liệu sản phẩm khi component mount
     useEffect(() => {
@@ -333,99 +710,7 @@ const Product = () => {
                 </h2>
                 
                 <div className={cx('content-wrapper')}>
-                    {/* Phần bộ lọc bên trái */}
-                    <div className={cx('filter-sidebar')}>
-                        <div className={cx('filter-box')}>
-                            <h3 className={cx('filter-title')}>Bộ lọc sản phẩm</h3>
-                            
-                            <div className={cx('filter-section')}>
-                                <h4>Khoảng giá</h4>
-                                <div className={cx('price-inputs')}>
-                                    <div className={cx('price-input')}>
-                                        <label>Từ:</label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            value={priceRange.min}
-                                            onChange={(e) => handlePriceChange(e, 'min')}
-                                        />
-                                    </div>
-                                    <div className={cx('price-input')}>
-                                        <label>Đến:</label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            value={priceRange.max}
-                                            onChange={(e) => handlePriceChange(e, 'max')}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            {brands.length > 0 && (
-                                <div className={cx('filter-section')}>
-                                    <h4>Thương hiệu</h4>
-                                    <div className={cx('brand-list')}>
-                                        {brands.map((brand, index) => (
-                                            <div key={index} className={cx('brand-item')}>
-                                                <input
-                                                    type="checkbox"
-                                                    id={`brand-${index}`}
-                                                    checked={selectedBrands.some(selected => 
-                                                        selected.toLowerCase() === brand.toLowerCase()
-                                                    )}
-                                                    onChange={() => handleBrandChange(brand)}
-                                                />
-                                                <label htmlFor={`brand-${index}`}>{brand}</label>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                            
-                            <div className={cx('filter-section')}>
-                                <h4>Giới tính</h4>
-                                <div className={cx('gender-list')}>
-                                    {genders.map((gender, index) => (
-                                        <div key={index} className={cx('gender-item')}>
-                                            <input
-                                                type="radio"
-                                                id={`gender-${index}`}
-                                                checked={selectedGender === gender}
-                                                onChange={() => handleGenderChange(gender)}
-                                                name="gender"
-                                            />
-                                            <label htmlFor={`gender-${index}`}>{gender}</label>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                            
-                            <div className={cx('filter-section')}>
-                                <h4>Sắp xếp</h4>
-                                <select 
-                                    className={cx('sort-select')} 
-                                    value={sortOption}
-                                    onChange={handleSortChange}
-                                >
-                                    <option value="default">Mặc định</option>
-                                    <option value="price-asc">Giá: Thấp đến cao</option>
-                                    <option value="price-desc">Giá: Cao đến thấp</option>
-                                    <option value="name-asc">Tên: A-Z</option>
-                                    <option value="name-desc">Tên: Z-A</option>
-                                </select>
-                            </div>
-                            
-                            <button 
-                                className={cx('clear-filter')}
-                                onClick={clearFilters}
-                            >
-                                Xóa bộ lọc
-                            </button>
-                        </div>
-                    </div>
-                
-                    {/* Phần hiển thị sản phẩm bên phải */}
+                    {/* Phần hiển thị sản phẩm */}
                     <div className={cx('products-container')}>
                         {loading ? (
                             <div className={cx('loading')}>Đang tải sản phẩm...</div>
