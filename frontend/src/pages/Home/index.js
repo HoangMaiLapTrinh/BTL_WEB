@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import classNames from 'classnames/bind';
+import { useNavigate } from 'react-router-dom';
 import * as styles from './Home.module.scss';
 import { useSlider } from './home.js';
 import ProductItem from '../../components/ProductItem/index.js';
@@ -18,6 +19,7 @@ import logoPrada from '../../img/Logo/logo_prada.png';
 const cx = classNames.bind(styles);
 
 function Home() {
+    const navigate = useNavigate();
     const { currentSlide, slides, goToSlide, goToPrevSlide, goToNextSlide } = useSlider();
     const [products, setProducts] = useState([]);
     const [nikeProducts, setNikeProducts] = useState([]);
@@ -77,6 +79,19 @@ function Home() {
 
         fetchProducts();
     }, []);
+
+    const handleBrandClick = (brandName) => {
+        // Cuộn mượt lên đầu trang với hiệu ứng
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+        
+        // Delay chuyển hướng để cho hoạt ảnh cuộn hoàn thành
+        setTimeout(() => {
+            navigate(`/products?brand=${brandName}`);
+        }, 600); // 600ms để cho hiệu ứng cuộn hoàn thành
+    };
 
     return (
         <div className={cx('wrapper')}>
@@ -180,7 +195,11 @@ function Home() {
                 <h2 className={cx('section-title')}>Thương hiệu của chúng tôi</h2>
                 <div className={cx('brands-container')}>
                     {brands.map((brand, index) => (
-                        <div key={index} className={cx('brand-item')}>
+                        <div 
+                            key={index} 
+                            className={cx('brand-item')}
+                            onClick={() => handleBrandClick(brand.name)}
+                        >
                             <img src={brand.logo} alt={brand.name} />
                         </div>
                     ))}

@@ -6,6 +6,7 @@ import axios from 'axios';
 import { API_URL } from '../../services/authService.js';
 import { showToast } from '../../components/Toast/index.js';
 import { useAuth } from '../../context/AuthContext.js';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const cx = classNames.bind(styles);
 
@@ -38,7 +39,10 @@ const OrderStatusBadge = ({ status }) => {
 const MyOrders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [cancellingOrder, setCancellingOrder] = useState(null);
+  const [error, setError] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [cancelLoading, setCancelLoading] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
   
@@ -91,13 +95,25 @@ const MyOrders = () => {
     }
   };
   
-  const handleCancelOrder = async (orderId) => {
+  const openCancelConfirmation = (orderId) => {
+    setSelectedOrderId(orderId);
+    setShowConfirmModal(true);
+  };
+  
+  const closeCancelConfirmation = () => {
+    setShowConfirmModal(false);
+    setSelectedOrderId(null);
+  };
+  
+  const handleCancelOrder = async () => {
+    if (!selectedOrderId) return;
+    
+    setCancelLoading(true);
     try {
-      setCancellingOrder(orderId);
       const token = localStorage.getItem('token');
       
       const response = await axios.put(
-        `${API_URL}/orders/order/${orderId}/cancel`,
+        `${API_URL}/orders/order/${selectedOrderId}/cancel`,
         { status: 'Cancelled' },
         {
           headers: {
@@ -118,7 +134,7 @@ const MyOrders = () => {
         
         // Cập nhật trạng thái đơn hàng trong danh sách
         setOrders(orders.map(order => 
-          order._id === orderId ? { ...order, orderStatus: 'Cancelled' } : order
+          order._id === selectedOrderId ? { ...order, orderStatus: 'Cancelled' } : order
         ));
       } else {
         showToast({
@@ -137,7 +153,8 @@ const MyOrders = () => {
         duration: 3000
       });
     } finally {
-      setCancellingOrder(null);
+      setCancelLoading(false);
+      setSelectedOrderId(null);
     }
   };
   
@@ -153,6 +170,43 @@ const MyOrders = () => {
     return new Date(dateString).toLocaleDateString('vi-VN', options);
   };
   
+  // Lấy tên trạng thái tiếng Việt
+  const getStatusVietnamese = (status) => {
+    switch (status) {
+      case 'Processing':
+        return 'Đang xử lý';
+      case 'Shipped':
+        return 'Đang giao hàng';
+      case 'Delivered':
+        return 'Đã giao hàng';
+      case 'Cancelled':
+        return 'Đã hủy';
+      default:
+        return status;
+    }
+  };
+  
+  // Xác định màu cho trạng thái
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Processing':
+        return '#ff9800'; // Màu cam
+      case 'Shipped':
+        return '#2196f3'; // Màu xanh dương
+      case 'Delivered':
+        return '#4caf50'; // Màu xanh lá
+      case 'Cancelled':
+        return '#f44336'; // Màu đỏ
+      default:
+        return '#757575'; // Màu xám
+    }
+  };
+  
+  // Kiểm tra xem đơn hàng có thể hủy hay không
+  const canCancelOrder = (status) => {
+    return status === 'Processing';
+  };
+  
   return (
     <div className={cx('myOrdersPage')}>
       <div className={cx('container')}>
@@ -166,6 +220,8 @@ const MyOrders = () => {
             <div className={cx('spinner')}></div>
             <p>Đang tải đơn hàng...</p>
           </div>
+        ) : error ? (
+          <div className={cx('error')}>{error}</div>
         ) : orders.length === 0 ? (
           <div className={cx('emptyOrders')}>
             <div className={cx('emptyIcon')}>
@@ -193,7 +249,16 @@ const MyOrders = () => {
                     </div>
                   </div>
                   <div className={cx('orderStatus')}>
-                    <OrderStatusBadge status={order.orderStatus} />
+                    <span
+                      className={cx('statusBadge')}
+                      style={{ backgroundColor: getStatusColor(order.orderStatus) }}
+                      title={order.cancelledBy === 'admin' ? `Đã hủy bởi Admin: ${order.cancelledByUserName || 'Admin'} vào ${formatDate(order.cancelledAt)}` : ''}
+                    >
+                      {getStatusVietnamese(order.orderStatus)}
+                      {order.cancelledBy === 'admin' && order.orderStatus === 'Cancelled' && 
+                        <span className={cx('cancelInfo')}> (Bởi Admin)</span>
+                      }
+                    </span>
                   </div>
                 </div>
                 
@@ -237,15 +302,15 @@ const MyOrders = () => {
                 
                 <div className={cx('orderFooter')}>
                   <Link to={`/order/${order._id}`} className={cx('viewDetailsBtn')}>
-                    Xem chi tiết
+                    <i className="fas fa-eye"></i> Xem chi tiết
                   </Link>
-                  {order.orderStatus === 'Processing' && (
+                  {canCancelOrder(order.orderStatus) && (
                     <button 
                       className={cx('cancelOrderBtn')}
-                      onClick={() => handleCancelOrder(order._id)}
-                      disabled={cancellingOrder === order._id}
+                      onClick={() => openCancelConfirmation(order._id)}
+                      disabled={cancelLoading}
                     >
-                      {cancellingOrder === order._id ? 'Đang hủy...' : 'Hủy đơn hàng'}
+                      <i className="fas fa-ban"></i> Hủy đơn hàng
                     </button>
                   )}
                 </div>
@@ -254,6 +319,44 @@ const MyOrders = () => {
           </div>
         )}
       </div>
+      
+      {/* Modal xác nhận hủy đơn hàng */}
+      {showConfirmModal && (
+        <div className={cx('modalOverlay')}>
+          <div className={cx('confirmModal')}>
+            <div className={cx('modalHeader')}>
+              <h3>Xác nhận hủy đơn hàng</h3>
+              <button 
+                className={cx('closeButton')}
+                onClick={closeCancelConfirmation}
+                disabled={cancelLoading}
+              >
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            <div className={cx('modalBody')}>
+              <p>Bạn có chắc chắn muốn hủy đơn hàng này không?</p>
+              <p>Lưu ý: Hành động này không thể hoàn tác sau khi xác nhận.</p>
+            </div>
+            <div className={cx('modalFooter')}>
+              <button 
+                className={cx('cancelButton')}
+                onClick={closeCancelConfirmation}
+                disabled={cancelLoading}
+              >
+                Đóng
+              </button>
+              <button 
+                className={cx('confirmButton')}
+                onClick={handleCancelOrder}
+                disabled={cancelLoading}
+              >
+                {cancelLoading ? 'Đang xử lý...' : 'Xác nhận hủy'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

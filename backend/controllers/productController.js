@@ -107,7 +107,29 @@ exports.updateProduct = async (req, res) => {
             });
         }
 
-        product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+        // Xử lý dữ liệu sản phẩm
+        const productData = {
+            name: req.body.name,
+            description: req.body.description,
+            price: req.body.price,
+            stock: req.body.stock,
+            category: req.body.category,
+            brand: req.body.brand,
+            gioiTinh: req.body.gioiTinh,
+            mauSac: req.body.mauSac,
+            kieuDang: req.body.kieuDang,
+            chatLieu: req.body.chatLieu,
+            xuatXu: req.body.xuatXu,
+            size: req.body.size
+        };
+
+        // Xử lý hình ảnh nếu có hình ảnh mới được gửi lên
+        if (req.body.images && req.body.images.length > 0) {
+            productData.images = req.body.images;
+        }
+
+        // Cập nhật sản phẩm
+        product = await Product.findByIdAndUpdate(req.params.id, productData, {
             new: true,
             runValidators: true
         });
@@ -117,6 +139,7 @@ exports.updateProduct = async (req, res) => {
             product
         });
     } catch (error) {
+        console.error('Lỗi cập nhật sản phẩm:', error);
         res.status(500).json({
             success: false,
             message: error.message

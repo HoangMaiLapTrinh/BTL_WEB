@@ -15,24 +15,42 @@ function LoginAndRegister() {
   const { isSignUpActive, toggleToSignUp, toggleToSignIn } = useLoginAndRegisterLogic();
   const navigate = useNavigate();
   const location = useLocation();
-  const { login: authLogin } = useAuth();
+  const { login: authLogin, user } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: ''
   });
   const [error, setError] = useState('');
+  const [adminRequired, setAdminRequired] = useState(false);
 
-  // Kiểm tra URL để xác định form nào cần hiển thị
+  // Kiểm tra URL để xác định form nào cần hiển thị và nếu yêu cầu quyền admin
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const action = searchParams.get('action');
+    const adminReq = searchParams.get('adminRequired');
+    
     if (action === 'register') {
       toggleToSignUp();
     } else {
       toggleToSignIn();
     }
-  }, [location]);
+
+    if (adminReq === 'true') {
+      setAdminRequired(true);
+      if (user && user.role !== 'admin') {
+        setError('Bạn cần đăng nhập bằng tài khoản có quyền admin để truy cập trang này');
+        showToast({
+          title: "Yêu cầu quyền Admin",
+          message: "Bạn cần đăng nhập bằng tài khoản có quyền admin để truy cập trang này",
+          type: "warning",
+          duration: 5000
+        });
+      }
+    } else {
+      setAdminRequired(false);
+    }
+  }, [location, user]);
 
   const handleChange = (e) => {
     setFormData({
@@ -82,6 +100,18 @@ function LoginAndRegister() {
         password: formData.password
       });
       if (response.success) {
+        // Kiểm tra xem đã yêu cầu quyền admin chưa và người dùng đăng nhập có phải admin không
+        if (adminRequired && response.user.role !== 'admin') {
+          setError('Tài khoản của bạn không có quyền admin. Vui lòng đăng nhập với tài khoản admin.');
+          showToast({
+            title: "Không có quyền",
+            message: "Tài khoản của bạn không có quyền admin. Vui lòng đăng nhập với tài khoản admin.",
+            type: "error",
+            duration: 4000
+          });
+          return;
+        }
+
         showToast({
           title: "Thành công!",
           message: "Đăng nhập thành công!",
@@ -89,10 +119,13 @@ function LoginAndRegister() {
           duration: 3000
         });
         authLogin(response.user, response.token);
+
+        // Nếu có từ trang khác chuyển đến, quay lại trang đó
+        const fromPage = location.state?.from?.pathname || '/';
         if (response.user.role === 'admin') {
-          navigate('/admin');
+          navigate(fromPage === '/admin' ? '/admin' : '/admin');
         } else {
-          navigate('/');
+          navigate(fromPage === '/admin' ? '/' : fromPage);
         }
       }
     } catch (error) {
@@ -129,6 +162,11 @@ function LoginAndRegister() {
             </div>
             <span>or use your email for registration</span>
             {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
+            {adminRequired && (
+              <div style={{ color: 'orange', marginBottom: '10px', fontWeight: 'bold', fontSize: '12px' }}>
+                Cần tài khoản admin để truy cập trang Admin
+              </div>
+            )}
             <input 
               type="text" 
               name="name"
@@ -174,6 +212,11 @@ function LoginAndRegister() {
             </div>
             <span>or use your email password</span>
             {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
+            {adminRequired && (
+              <div style={{ color: 'orange', marginBottom: '10px', fontWeight: 'bold', fontSize: '12px' }}>
+                Cần tài khoản admin để truy cập trang Admin
+              </div>
+            )}
             <input 
               type="email" 
               name="email"
@@ -199,16 +242,12 @@ function LoginAndRegister() {
             <div className={cx('toggle-panel', 'toggle-left')}>
               <h1>Welcome Back!</h1>
               <p>Enter your personal details to use all of site features</p>
-              <button className={styles.hidden} onClick={toggleToSignIn}>
-                Sign In
-              </button>
+              <button className={styles.hidden} onClick={toggleToSignIn}>Sign In</button>
             </div>
             <div className={cx('toggle-panel', 'toggle-right')}>
               <h1>Hello, Friend!</h1>
               <p>Register with your personal details to use all of site features</p>
-              <button className={styles.hidden} onClick={toggleToSignUp}>
-                Sign Up
-              </button>
+              <button className={styles.hidden} onClick={toggleToSignUp}>Sign Up</button>
             </div>
           </div>
         </div>

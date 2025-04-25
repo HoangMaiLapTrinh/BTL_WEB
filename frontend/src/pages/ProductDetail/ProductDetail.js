@@ -27,8 +27,16 @@ function ProductDetail() {
     const [isLoadingComments, setIsLoadingComments] = useState(true);
     const [slideDirection, setSlideDirection] = useState(''); // 'next' hoặc 'prev' để xác định hướng animation
     const [isAnimating, setIsAnimating] = useState(false);
-    const openModal = () => setIsModalOpen(true);
-    const closeModal = () => setIsModalOpen(false);
+    const openModal = () => {
+        setIsModalOpen(true);
+        // Ngăn scroll khi modal mở
+        document.body.style.overflow = 'hidden';
+    };
+    const closeModal = () => {
+        setIsModalOpen(false);
+        // Khôi phục lại scroll nếu cần
+        document.body.style.overflow = '';
+    };
     const extraInfoRef = useRef(null);
     const commentRef = useRef(null);
     const similarProductsRef = useRef(null);
@@ -484,6 +492,20 @@ function ProductDetail() {
         }
     };
 
+    // Thêm useEffect để kiểm soát việc cuộn trang khi modal mở
+    useEffect(() => {
+        if (isModalOpen) {
+            document.body.classList.add('body-no-scroll');
+        } else {
+            document.body.classList.remove('body-no-scroll');
+        }
+        
+        // Cleanup khi component unmount
+        return () => {
+            document.body.classList.remove('body-no-scroll');
+        };
+    }, [isModalOpen]);
+
     if (loading) {
         return <div className={cx('loading')}>Đang tải...</div>;
     }
@@ -556,8 +578,16 @@ function ProductDetail() {
             </div>
 
             {isModalOpen && (
-                <div className={cx('image-modal')} onClick={closeModal}>
-                    <img src={product.images[mainImageIndex]?.url} alt={product.name} className={cx('modal-image')} />
+                <div 
+                    className={cx('image-modal')} 
+                    onClick={closeModal}
+                >
+                    <img 
+                        src={product.images[mainImageIndex]?.url} 
+                        alt={product.name} 
+                        className={cx('modal-image')} 
+                        onClick={(e) => e.stopPropagation()} 
+                    />
                 </div>
             )}
 

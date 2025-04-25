@@ -190,14 +190,13 @@ exports.cancelOrder = async (req, res) => {
             });
         }
 
-        // Kiểm tra xem người dùng hiện tại có phải là người đặt đơn hàng này không
-        if (order.user.toString() !== req.user._id.toString()) {
+        if (req.user.role !== 'admin' && order.user.toString() !== req.user._id.toString()) {
             return res.status(403).json({
                 success: false,
                 message: 'Bạn không có quyền hủy đơn hàng này'
             });
         }
-
+        
         // Kiểm tra xem đơn hàng có thể hủy không (chỉ có thể hủy khi trạng thái là Processing)
         if (order.orderStatus !== 'Processing') {
             return res.status(400).json({
@@ -214,6 +213,33 @@ exports.cancelOrder = async (req, res) => {
         res.status(200).json({
             success: true,
             message: 'Đơn hàng đã được hủy thành công'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+// Xóa đơn hàng hoàn toàn (ADMIN)
+exports.removeOrder = async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'Không tìm thấy đơn hàng'
+            });
+        }
+
+        // Xóa hoàn toàn đơn hàng khỏi database
+        await Order.findByIdAndDelete(req.params.id);
+
+        res.status(200).json({
+            success: true,
+            message: 'Đơn hàng đã được xóa hoàn toàn'
         });
     } catch (error) {
         res.status(500).json({

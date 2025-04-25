@@ -283,4 +283,125 @@ exports.logout = async (req, res) => {
         success: true,
         message: 'Đăng xuất thành công'
     });
+};
+
+// Hàm lấy tất cả users (chỉ admin mới được phép)
+exports.getAllUsers = async (req, res) => {
+    try {
+        // Chỉ admin mới có quyền xem tất cả users
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Bạn không có quyền truy cập tính năng này'
+            });
+        }
+
+        const users = await User.find().select('-password');
+        
+        return res.status(200).json({
+            success: true,
+            users
+        });
+    } catch (error) {
+        console.error('Lỗi khi lấy danh sách users:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Đã xảy ra lỗi khi lấy danh sách người dùng'
+        });
+    }
+};
+
+// Hàm xóa user theo ID (chỉ admin mới được phép)
+exports.deleteUser = async (req, res) => {
+    try {
+        // Chỉ admin mới có quyền xóa user
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Bạn không có quyền thực hiện hành động này'
+            });
+        }
+
+        const userId = req.params.id;
+        
+        // Kiểm tra nếu user cần xóa tồn tại
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'Không tìm thấy người dùng'
+            });
+        }
+
+        // Không cho phép admin xóa chính mình
+        if (user._id.toString() === req.user.id) {
+            return res.status(400).json({
+                success: false,
+                message: 'Bạn không thể xóa tài khoản của chính mình'
+            });
+        }
+
+        await User.findByIdAndDelete(userId);
+        
+        return res.status(200).json({
+            success: true,
+            message: 'Người dùng đã được xóa thành công'
+        });
+    } catch (error) {
+        console.error('Lỗi khi xóa user:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Đã xảy ra lỗi khi xóa người dùng'
+        });
+    }
+};
+
+// Hàm cập nhật thông tin user (chỉ admin mới được phép)
+exports.updateUserByAdmin = async (req, res) => {
+    try {
+        // Chỉ admin mới có quyền cập nhật user
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Bạn không có quyền thực hiện hành động này'
+            });
+        }
+
+        const userId = req.params.id;
+        const { name, email, role } = req.body;
+        
+        // Kiểm tra nếu user cần cập nhật tồn tại
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'Không tìm thấy người dùng'
+            });
+        }
+
+        // Cập nhật thông tin
+        const updatedData = {
+            name: name || user.name,
+            email: email || user.email,
+            role: role || user.role
+        };
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            updatedData,
+            { new: true, runValidators: true }
+        ).select('-password');
+        
+        return res.status(200).json({
+            success: true,
+            user: updatedUser,
+            message: 'Cập nhật thông tin người dùng thành công'
+        });
+    } catch (error) {
+        console.error('Lỗi khi cập nhật user:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Đã xảy ra lỗi khi cập nhật thông tin người dùng'
+        });
+    }
 }; 
