@@ -13,6 +13,12 @@ function Admin() {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [invoices, setInvoices] = useState([]);
     const [products, setProducts] = useState([]);
+    const [users, setUsers] = useState([]);
+    const [dashboardStats, setDashboardStats] = useState({
+        totalOrders: 0,
+        totalUsers: 0,
+        totalProducts: 0
+    });
     const [newProduct, setNewProduct] = useState({
         code: '',
         name: '',
@@ -30,6 +36,73 @@ function Admin() {
         size: ''
     });
     const [showAddForm, setShowAddForm] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [brandFilter, setBrandFilter] = useState('');
+    const [priceSort, setPriceSort] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+
+    const fetchDashboardData = async () => {
+        try {
+            // Fetch orders
+            const ordersResponse = await axios.get(`${API_URL}/orders/admin`, {
+                withCredentials: true,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (ordersResponse.data.success) {
+                setDashboardStats(prev => ({
+                    ...prev,
+                    totalOrders: ordersResponse.data.orders.length
+                }));
+                console.log('Orders data:', ordersResponse.data);
+            }
+
+            // Fetch products
+            const productsResponse = await axios.get(`${API_URL}/products/products`, {
+                withCredentials: true,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (productsResponse.data.success) {
+                setDashboardStats(prev => ({
+                    ...prev,
+                    totalProducts: productsResponse.data.products.length
+                }));
+                console.log('Products data:', productsResponse.data);
+            }
+
+            // Fetch users
+            const usersResponse = await axios.get(`${API_URL}/users`, {
+                withCredentials: true,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (usersResponse.data.success) {
+                setDashboardStats(prev => ({
+                    ...prev,
+                    totalUsers: usersResponse.data.users.length
+                }));
+                console.log('Users data:', usersResponse.data);
+            }
+        } catch (error) {
+            console.error('Error fetching dashboard data:', error);
+            if (error.response) {
+                console.error('Error response:', error.response.data);
+            }
+            showToast({
+                title: "Lỗi",
+                message: "Không thể tải dữ liệu bảng điều khiển",
+                type: "error",
+                duration: 3000
+            });
+        }
+    };
 
     useEffect(() => {
         if (activeTab === 'invoices') {
@@ -52,8 +125,55 @@ function Admin() {
                 .catch(error => {
                     console.error('Lỗi khi lấy sản phẩm:', error);
                 });
+        } else if (activeTab === 'dashboard') {
+            // Fetch orders count
+            axios.get(`${API_URL}/orders/admin`, { withCredentials: true })
+                .then(response => {
+                    if (response.data.success) {
+                        setDashboardStats(prev => ({
+                            ...prev,
+                            totalOrders: response.data.orders.length
+                        }));
+                    }
+                })
+                .catch(error => {
+                    console.error('Lỗi khi lấy số lượng hóa đơn:', error);
+                });
+
+            // Fetch products count
+            axios.get(`${API_URL}/products/products`, { withCredentials: true })
+                .then(response => {
+                    if (response.data.success) {
+                        setDashboardStats(prev => ({
+                            ...prev,
+                            totalProducts: response.data.products.length
+                        }));
+                    }
+                })
+                .catch(error => {
+                    console.error('Lỗi khi lấy số lượng sản phẩm:', error);
+                });
+
+            // Fetch users count
+            axios.get(`${API_URL}/users`, { 
+                withCredentials: true,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+                .then(response => {
+                    if (response.data.success) {
+                        setDashboardStats(prev => ({
+                            ...prev,
+                            totalUsers: response.data.users.length
+                        }));
+                    }
+                })
+                .catch(error => {
+                    console.error('Lỗi khi lấy số lượng người dùng:', error);
+                });
         }
-    }, [activeTab]);
+    }, [activeTab, token]);
 
     const handleAddProduct = () => {
         setShowAddForm(true);
@@ -188,8 +308,51 @@ function Admin() {
             });
     };
 
+    const handleSearch = (e) => {
+        setSearchTerm(e.target.value);
+        // Implement search logic
+    };
+
+    const handleBrandFilter = (e) => {
+        setBrandFilter(e.target.value);
+        // Implement brand filter logic
+    };
+
+    const handlePriceSort = (e) => {
+        setPriceSort(e.target.value);
+        // Implement price sort logic
+    };
+
+    const handlePrevPage = () => {
+        setCurrentPage(prev => Math.max(1, prev - 1));
+    };
+
+    const handleNextPage = () => {
+        setCurrentPage(prev => prev + 1);
+    };
+
     const renderContent = () => {
         switch (activeTab) {
+            case 'dashboard':
+                return (
+                    <div className={cx('dashboard')}>
+                        <h2>Bảng điều khiển</h2>
+                        <div className={cx('stats-container')}>
+                            <div className={cx('stat-card')}>
+                                <h3>Tổng số hóa đơn</h3>
+                                <p className={cx('stat-number')}>{dashboardStats.totalOrders}</p>
+                            </div>
+                            <div className={cx('stat-card')}>
+                                <h3>Tổng số tài khoản</h3>
+                                <p className={cx('stat-number')}>{dashboardStats.totalUsers}</p>
+                            </div>
+                            <div className={cx('stat-card')}>
+                                <h3>Tổng số sản phẩm</h3>
+                                <p className={cx('stat-number')}>{dashboardStats.totalProducts}</p>
+                            </div>
+                        </div>
+                    </div>
+                );
             case 'invoices':
                 return (
                     <div>
@@ -207,41 +370,162 @@ function Admin() {
                 );
             case 'products':
                 return (
-                    <div>
-                        <h2>Quản lý sản phẩm</h2>
-                        <div className={cx('product-actions')}>
-                            <button onClick={handleAddProduct}>Thêm sản phẩm</button>
+                    <div className={cx('wrapper')}>
+                        <div className={cx('product-management')}>
+                            {showAddForm ? (
+                                <div className={cx('add-product-form')}>
+                                    <h3>Thêm sản phẩm mới</h3>
+                                    <input
+                                        type="text"
+                                        placeholder="Tên sản phẩm"
+                                        value={newProduct.name}
+                                        onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                                    />
+                                    <input
+                                        type="number"
+                                        placeholder="Giá"
+                                        value={newProduct.price}
+                                        onChange={(e) => setNewProduct({ ...newProduct, price: parseFloat(e.target.value) })}
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Thương hiệu"
+                                        value={newProduct.brand}
+                                        onChange={(e) => setNewProduct({ ...newProduct, brand: e.target.value })}
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Xuất xứ"
+                                        value={newProduct.xuatXu}
+                                        onChange={(e) => setNewProduct({ ...newProduct, xuatXu: e.target.value })}
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Giới tính"
+                                        value={newProduct.gioiTinh}
+                                        onChange={(e) => setNewProduct({ ...newProduct, gioiTinh: e.target.value })}
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Màu sắc"
+                                        value={newProduct.mauSac}
+                                        onChange={(e) => setNewProduct({ ...newProduct, mauSac: e.target.value })}
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Kiểu dáng"
+                                        value={newProduct.kieuDang}
+                                        onChange={(e) => setNewProduct({ ...newProduct, kieuDang: e.target.value })}
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Chất liệu"
+                                        value={newProduct.chatLieu}
+                                        onChange={(e) => setNewProduct({ ...newProduct, chatLieu: e.target.value })}
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Size"
+                                        value={newProduct.size}
+                                        onChange={(e) => setNewProduct({ ...newProduct, size: e.target.value })}
+                                    />
+                                    <input
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        onChange={handleImageChange}
+                                    />
+                                    <div className={cx('form-actions')}>
+                                        <button onClick={handleSaveProduct}>Lưu</button>
+                                        <button onClick={() => setShowAddForm(false)}>Hủy</button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className={cx('search-bar')}>
+                                        <input 
+                                            type="text" 
+                                            placeholder="Tìm kiếm sản phẩm..." 
+                                            value={searchTerm}
+                                            onChange={handleSearch}
+                                        />
+                                    </div>
+
+                                    <div className={cx('filter-section')}>
+                                        <select value={brandFilter} onChange={handleBrandFilter}>
+                                            <option value="">Tất cả thương hiệu</option>
+                                            <option value="nike">Nike</option>
+                                            <option value="gucci">Gucci</option>
+                                            <option value="dior">Dior</option>
+                                        </select>
+
+                                        <select value={priceSort} onChange={handlePriceSort}>
+                                            <option value="">Sắp xếp theo giá</option>
+                                            <option value="asc">Giá tăng dần</option>
+                                            <option value="desc">Giá giảm dần</option>
+                                        </select>
+                                    </div>
+
+                                    <button className={cx('add-product')} onClick={handleAddProduct}>
+                                        + Thêm sản phẩm mới
+                                    </button>
+
+                                    <div className={cx('product-list')}>
+                                        {products.map((product) => (
+                                            <div key={product._id} className={cx('product-item')}>
+                                                <div className={cx('product-info')}>
+                                                    <div className={cx('product-image')}>
+                                                        <img 
+                                                            src={product.images?.[0]?.url || 'placeholder.jpg'} 
+                                                            alt={product.name} 
+                                                        />
+                                                    </div>
+                                                    <div className={cx('product-details')}>
+                                                        <div className={cx('product-name')}>{product.name}</div>
+                                                        <div className={cx('product-price')}>
+                                                            {new Intl.NumberFormat('vi-VN', { 
+                                                                style: 'currency', 
+                                                                currency: 'VND' 
+                                                            }).format(product.price)}
+                                                        </div>
+                                                        {product.brand && (
+                                                            <div className={cx('product-brand')}>{product.brand}</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className={cx('product-actions')}>
+                                                    <button 
+                                                        className={cx('action-button', 'edit')}
+                                                        onClick={() => handleEditProduct(product._id)}
+                                                    >
+                                                        Sửa
+                                                    </button>
+                                                    <button 
+                                                        className={cx('action-button', 'delete')}
+                                                        onClick={() => handleDeleteProduct(product._id)}
+                                                    >
+                                                        Xóa
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className={cx('pagination')}>
+                                        <button 
+                                            disabled={currentPage === 1} 
+                                            onClick={handlePrevPage}
+                                        >
+                                            &lt;
+                                        </button>
+                                        <span>{currentPage}</span>
+                                        <button onClick={handleNextPage}>
+                                            &gt;
+                                        </button>
+                                    </div>
+                                </>
+                            )}
                         </div>
-                        {showAddForm && (
-                            <div className={cx('add-product-form')}>
-                                <h3>Thêm sản phẩm mới</h3>
-                                <input type="text" placeholder="Mã sản phẩm" value={newProduct.code} onChange={(e) => setNewProduct({...newProduct, code: e.target.value})} />
-                                <input type="text" placeholder="Tên sản phẩm" value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
-                                <textarea placeholder="Mô tả sản phẩm" value={newProduct.description} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} />
-                                <input type="file" multiple accept="image/*" onChange={handleImageChange} />
-                                <input type="number" placeholder="Giá" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: parseFloat(e.target.value)})} />
-                                <input type="number" placeholder="Số lượng" value={newProduct.stock} onChange={(e) => setNewProduct({...newProduct, stock: parseInt(e.target.value)})} />
-                                <input type="text" placeholder="Danh mục" value={newProduct.category} onChange={(e) => setNewProduct({...newProduct, category: e.target.value})} />
-                                <input type="text" placeholder="Thương hiệu" value={newProduct.brand} onChange={(e) => setNewProduct({...newProduct, brand: e.target.value})} />
-                                <input type="text" placeholder="Xuất xứ" value={newProduct.xuatXu} onChange={(e) => setNewProduct({...newProduct, xuatXu: e.target.value})} />
-                                <input type="text" placeholder="Giới tính" value={newProduct.gioiTinh} onChange={(e) => setNewProduct({...newProduct, gioiTinh: e.target.value})} />
-                                <input type="text" placeholder="Màu sắc" value={newProduct.mauSac} onChange={(e) => setNewProduct({...newProduct, mauSac: e.target.value})} />
-                                <input type="text" placeholder="Kiểu dáng" value={newProduct.kieuDang} onChange={(e) => setNewProduct({...newProduct, kieuDang: e.target.value})} />
-                                <input type="text" placeholder="Chất liệu" value={newProduct.chatLieu} onChange={(e) => setNewProduct({...newProduct, chatLieu: e.target.value})} />
-                                <input type="text" placeholder="Size" value={newProduct.size} onChange={(e) => setNewProduct({...newProduct, size: e.target.value})} />
-                                <button onClick={handleSaveProduct}>Lưu sản phẩm</button>
-                            </div>
-                        )}
-                        <ul>
-                            {products.map(product => (
-                                <li key={product._id}>
-                                    <p>Tên sản phẩm: {product.name}</p>
-                                    <p>Giá: {product.price}</p>
-                                    <button onClick={() => handleEditProduct(product._id)}>Sửa</button>
-                                    <button onClick={() => handleDeleteProduct(product._id)}>Xóa</button>
-                                </li>
-                            ))}
-                        </ul>
                     </div>
                 );
             case 'users':

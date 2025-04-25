@@ -6,14 +6,35 @@ import { useSlider } from './home.js';
 import ProductItem from '../../components/ProductItem/index.js';
 import { API_URL } from '../../services/authService.js';
 import { showToast } from '../../components/Toast/index.js';
+// Import logo images
+import logoAdidas from '../../img/Logo/logo_adidas.png';
+import logoBalenciaga from '../../img/Logo/logo_balenciaga.png';
+import logoDior from '../../img/Logo/logo_dior.png';
+import logoGucci from '../../img/Logo/logo_gucci.jpg';
+import logoLV from '../../img/Logo/logo_lv.jpg';
+import logoNike from '../../img/Logo/logo_nike.png';
+import logoPrada from '../../img/Logo/logo_prada.png';
 
 const cx = classNames.bind(styles);
 
 function Home() {
     const { currentSlide, slides, goToSlide, goToPrevSlide, goToNextSlide } = useSlider();
     const [products, setProducts] = useState([]);
+    const [nikeProducts, setNikeProducts] = useState([]);
+    const [gucciProducts, setGucciProducts] = useState([]);
+    const [diorProducts, setDiorProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    const brands = [
+        { name: 'Adidas', logo: logoAdidas },
+        { name: 'Balenciaga', logo: logoBalenciaga },
+        { name: 'Dior', logo: logoDior },
+        { name: 'Gucci', logo: logoGucci },
+        { name: 'Louis Vuitton', logo: logoLV },
+        { name: 'Nike', logo: logoNike },
+        { name: 'Prada', logo: logoPrada }
+    ];
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -21,6 +42,18 @@ function Home() {
                 const response = await axios.get(`${API_URL}/products/products`);
                 if (response.data.success) {
                     setProducts(response.data.products);
+                    const nikeProds = response.data.products.filter(product => 
+                        product.brand && product.brand.toLowerCase() === 'nike'
+                    );
+                    const gucciProds = response.data.products.filter(product => 
+                        product.brand && product.brand.toLowerCase() === 'gucci'
+                    );
+                    const diorProds = response.data.products.filter(product => 
+                        product.brand && product.brand.toLowerCase() === 'dior'
+                    );
+                    setNikeProducts(nikeProds);
+                    setGucciProducts(gucciProds);
+                    setDiorProducts(diorProds);
                     showToast({
                         title: "Thành công",
                         message: "Đã tải sản phẩm thành công!",
@@ -93,11 +126,65 @@ function Home() {
                     <div className={cx('error')}>{error}</div>
                 ) : (
                     <div className={cx('products-grid')}>
-                        {products.map(product => (
+                        {products.slice(0, 5).map(product => (
                             <ProductItem key={product._id} product={product} />
                         ))}
                     </div>
                 )}
+
+                <h2 className={cx('section-title')}>Nike</h2>
+                {loading ? (
+                    <div className={cx('loading')}>Đang tải sản phẩm...</div>
+                ) : error ? (
+                    <div className={cx('error')}>{error}</div>
+                ) : nikeProducts.length === 0 ? (
+                    <div className={cx('no-products')}>Không có sản phẩm Nike</div>
+                ) : (
+                    <div className={cx('products-grid')}>
+                        {nikeProducts.slice(0, 5).map(product => (
+                            <ProductItem key={product._id} product={product} />
+                        ))}
+                    </div>
+                )}
+
+                <h2 className={cx('section-title')}>Gucci</h2>
+                {loading ? (
+                    <div className={cx('loading')}>Đang tải sản phẩm...</div>
+                ) : error ? (
+                    <div className={cx('error')}>{error}</div>
+                ) : gucciProducts.length === 0 ? (
+                    <div className={cx('no-products')}>Không có sản phẩm Gucci</div>
+                ) : (
+                    <div className={cx('products-grid')}>
+                        {gucciProducts.slice(0, 5).map(product => (
+                            <ProductItem key={product._id} product={product} />
+                        ))}
+                    </div>
+                )}
+
+                <h2 className={cx('section-title')}>Dior</h2>
+                {loading ? (
+                    <div className={cx('loading')}>Đang tải sản phẩm...</div>
+                ) : error ? (
+                    <div className={cx('error')}>{error}</div>
+                ) : diorProducts.length === 0 ? (
+                    <div className={cx('no-products')}>Không có sản phẩm Dior</div>
+                ) : (
+                    <div className={cx('products-grid')}>
+                        {diorProducts.slice(0, 5).map(product => (
+                            <ProductItem key={product._id} product={product} />
+                        ))}
+                    </div>
+                )}
+
+                <h2 className={cx('section-title')}>Thương hiệu của chúng tôi</h2>
+                <div className={cx('brands-container')}>
+                    {brands.map((brand, index) => (
+                        <div key={index} className={cx('brand-item')}>
+                            <img src={brand.logo} alt={brand.name} />
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );
