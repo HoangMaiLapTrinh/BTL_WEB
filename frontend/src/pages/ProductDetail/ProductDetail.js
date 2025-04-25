@@ -192,6 +192,17 @@ function ProductDetail() {
     // Tải dữ liệu sản phẩm
     useEffect(() => {
         const fetchProduct = async () => {
+            if (!id) {
+                setLoading(false);
+                showToast({
+                    title: 'Lỗi',
+                    message: 'Không tìm thấy sản phẩm',
+                    type: 'error',
+                });
+                navigate('/products');
+                return;
+            }
+            
             try {
                 const response = await axios.get(`${API_URL}/products/product/${id}`);
                 if (response.data.success) {
@@ -272,7 +283,7 @@ function ProductDetail() {
                 autoSlideInterval.current = null;
             }
         };
-    }, [id]);
+    }, [id, navigate]);
     
     // Lấy bình luận
     useEffect(() => {

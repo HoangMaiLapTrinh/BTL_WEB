@@ -1,5 +1,6 @@
 import Home from '../pages/Home/index.js';
-import Product from '../pages/ProductDetail/index.js';
+import ProductDetail from '../pages/ProductDetail/index.js';
+import Product from '../pages/Product/index.js';
 import Cart from '../pages/Cart/index.js';
 import LoginAndRegister from '../pages/LoginandRegister/index.js';
 import Info from '../pages/Info/index.js';
@@ -15,8 +16,8 @@ import Setting from '../pages/Setting/index.js';
 const publicRoutes = [
     { path: '/', component: Home },
     { path: '/products', component: Product },
-    { path: '/product/:id', component: Product },
-    { path: '/products/:id', component: Product },
+    { path: '/product/:id', component: ProductDetail },
+    { path: '/products/:id', component: ProductDetail },
     { path: '/login', component: LoginAndRegister},
     { path: '/info', component: Info},
 ]
