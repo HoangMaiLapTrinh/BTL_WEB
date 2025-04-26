@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import classNames from 'classnames/bind';
 import * as styles from './Admin.module.scss';
@@ -8,9 +8,20 @@ import { showToast } from '../../components/Toast/index.js';
 import { useNavigate } from 'react-router-dom';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTachometerAlt, faFileInvoice, faUsers, faSignOutAlt, faSearch, faPlus, faEye, faPencilAlt, faTrash, faTimes, faBars } from '@fortawesome/free-solid-svg-icons';
+import { faTachometerAlt, faFileInvoice, faUsers, faSignOutAlt, faSearch, faPlus, faEye, faPencilAlt, faTrash, faTimes, faBars, faComments, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 
 const cx = classNames.bind(styles);
+
+// Thêm tab Chat Support vào các tab quản lý
+const adminTabs = [
+    { id: 'dashboard', label: 'Dashboard', icon: 'fas fa-home' },
+    { id: 'products', label: 'Sản phẩm', icon: 'fas fa-box' },
+    { id: 'categories', label: 'Danh mục', icon: 'fas fa-list' },
+    { id: 'orders', label: 'Đơn hàng', icon: 'fas fa-shopping-cart' },
+    { id: 'users', label: 'Người dùng', icon: 'fas fa-users' },
+    { id: 'comments', label: 'Đánh giá', icon: 'fas fa-comments' },
+    { id: 'chat', label: 'Hỗ trợ khách hàng', icon: 'fas fa-comment-dots' } // Tab mới
+];
 
 function Admin() {
     const { token, user } = useAuth();
@@ -79,6 +90,16 @@ function Admin() {
     
     // State cho sidebar responsive
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+    // State cho chức năng chat
+    const [conversations, setConversations] = useState([]);
+    const [selectedConversation, setSelectedConversation] = useState(null);
+    const [messages, setMessages] = useState([]);
+    const [newChatMessage, setNewChatMessage] = useState('');
+    const [chatLoading, setChatLoading] = useState(false);
+    const [filteredConversations, setFilteredConversations] = useState([]);
+    const [conversationSearchTerm, setConversationSearchTerm] = useState('');
+    const messagesEndRef = React.useRef(null);
 
     // Toggle sidebar function
     const toggleSidebar = () => {
@@ -160,6 +181,26 @@ function Admin() {
                 console.log('Users data:', usersResponse.data);
                 setUsers(usersResponse.data.users);
             }
+            
+            // Thêm vào fetch conversations cho dashboard
+            const conversationsResponse = await axios.get(`${API_URL}/chat/conversations`, {
+                withCredentials: true,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (conversationsResponse.data.success) {
+                const unreadCount = conversationsResponse.data.conversations.reduce(
+                    (acc, conv) => acc + (conv.unreadCount || 0), 0
+                );
+                
+                setDashboardStats(prev => ({
+                    ...prev,
+                    totalChats: conversationsResponse.data.conversations.length,
+                    unreadMessages: unreadCount
+                }));
+            }
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
             if (error.response) {
@@ -216,8 +257,252 @@ function Admin() {
             fetchUsers();
         } else if (activeTab === 'dashboard') {
             fetchDashboardData();
+        } else if (activeTab === 'chat') {
+            fetchConversations();
         }
     }, [activeTab, token]);
+    
+    // Auto scroll to bottom of messages
+    useEffect(() => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [messages]);
+    
+    // Thêm hàm cuộn xuống tin nhắn mới nhất
+    const scrollToBottom = () => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+    
+    // Hàm lấy danh sách cuộc hội thoại
+    const fetchConversations = async () => {
+        try {
+            setChatLoading(true);
+            const response = await axios.get(`${API_URL}/chat/conversations`, {
+                withCredentials: true,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.data.success) {
+                setConversations(response.data.conversations);
+                setFilteredConversations(response.data.conversations);
+            } else {
+                showToast({
+                    title: "Lỗi",
+                    message: "Không thể tải danh sách cuộc hội thoại",
+                    type: "error",
+                    duration: 3000
+                });
+            }
+            setChatLoading(false);
+        } catch (error) {
+            console.error('Lỗi khi lấy cuộc hội thoại:', error);
+            showToast({
+                title: "Lỗi",
+                message: "Không thể tải danh sách cuộc hội thoại",
+                type: "error",
+                duration: 3000
+            });
+            setChatLoading(false);
+        }
+    };
+    
+    // Hàm lấy tin nhắn của cuộc hội thoại
+    const fetchMessages = async (conversationId) => {
+        if (!conversationId) return;
+        
+        try {
+            setChatLoading(true);
+            const response = await axios.get(`${API_URL}/chat/messages/${conversationId}`, {
+                withCredentials: true,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.data.success) {
+                setMessages(response.data.messages);
+                
+                // Đánh dấu đã đọc tin nhắn
+                markAsRead(conversationId);
+            } else {
+                showToast({
+                    title: "Lỗi",
+                    message: "Không thể tải tin nhắn",
+                    type: "error",
+                    duration: 3000
+                });
+            }
+            setChatLoading(false);
+        } catch (error) {
+            console.error('Lỗi khi lấy tin nhắn:', error);
+            showToast({
+                title: "Lỗi",
+                message: "Không thể tải tin nhắn",
+                type: "error",
+                duration: 3000
+            });
+            setChatLoading(false);
+        }
+    };
+    
+    // Hàm đánh dấu tin nhắn đã đọc
+    const markAsRead = async (conversationId) => {
+        try {
+            await axios.put(`${API_URL}/chat/conversation/${conversationId}/read`, {}, {
+                withCredentials: true,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            // Cập nhật lại UI để hiển thị đã đọc
+            setConversations(prev => 
+                prev.map(conv => 
+                    conv._id === conversationId 
+                        ? { ...conv, unreadCount: 0 } 
+                        : conv
+                )
+            );
+            
+            setFilteredConversations(prev => 
+                prev.map(conv => 
+                    conv._id === conversationId 
+                        ? { ...conv, unreadCount: 0 } 
+                        : conv
+                )
+            );
+        } catch (error) {
+            console.error('Lỗi khi đánh dấu đã đọc:', error);
+        }
+    };
+    
+    // Hàm gửi tin nhắn từ admin
+    const handleSendChatMessage = async (e) => {
+        e.preventDefault();
+        
+        if (!newChatMessage.trim() || !selectedConversation) return;
+        
+        try {
+            const messageData = {
+                conversationId: selectedConversation._id,
+                senderId: user._id,
+                senderName: user.name || 'Admin',
+                text: newChatMessage,
+                isAdmin: true
+            };
+            
+            // Thêm tạm tin nhắn vào UI trước
+            const tempMessage = {
+                ...messageData,
+                _id: Date.now().toString(),
+                createdAt: new Date()
+            };
+            
+            setMessages(prev => [...prev, tempMessage]);
+            setNewChatMessage('');
+            
+            // Cuộn xuống ngay sau khi thêm tin nhắn mới
+            setTimeout(scrollToBottom, 50);
+            
+            // Gửi tin nhắn lên server
+            const response = await axios.post(`${API_URL}/chat/message`, messageData, {
+                withCredentials: true,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!response.data.success) {
+                showToast({
+                    title: "Lỗi",
+                    message: "Không thể gửi tin nhắn",
+                    type: "error",
+                    duration: 3000
+                });
+            } else {
+                // Cập nhật danh sách cuộc hội thoại trong nền, không làm reset UI
+                updateConversationSilently(selectedConversation._id, newChatMessage);
+            }
+        } catch (error) {
+            console.error('Lỗi khi gửi tin nhắn:', error);
+            showToast({
+                title: "Lỗi",
+                message: "Không thể gửi tin nhắn",
+                type: "error",
+                duration: 3000
+            });
+        }
+    };
+    
+    // Thêm hàm cập nhật hội thoại mà không làm ảnh hưởng đến UI hiện tại
+    const updateConversationSilently = async (conversationId, lastMessage) => {
+        try {
+            const response = await axios.get(`${API_URL}/chat/conversations`, {
+                withCredentials: true,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.data.success) {
+                // Cập nhật state mà không làm ảnh hưởng đến selectedConversation hiện tại
+                setConversations(response.data.conversations);
+                
+                // Cập nhật filteredConversations nhưng giữ nguyên thứ tự
+                const updatedFilteredConvs = response.data.conversations.filter(conv => 
+                    filteredConversations.some(fc => fc._id === conv._id)
+                );
+                
+                if (updatedFilteredConvs.length > 0) {
+                    setFilteredConversations(updatedFilteredConvs);
+                }
+            }
+        } catch (error) {
+            console.error('Lỗi khi cập nhật danh sách cuộc hội thoại:', error);
+        }
+    };
+    
+    // Hàm chọn cuộc hội thoại
+    const handleSelectConversation = (conversation) => {
+        setSelectedConversation(conversation);
+        fetchMessages(conversation._id);
+        
+        // Đảm bảo cuộn xuống sau khi tin nhắn được tải
+        setTimeout(scrollToBottom, 300);
+    };
+    
+    // Hàm tìm kiếm cuộc hội thoại
+    const handleConversationSearch = (e) => {
+        const term = e.target.value;
+        setConversationSearchTerm(term);
+        
+        if (!term.trim()) {
+            setFilteredConversations(conversations);
+            return;
+        }
+        
+        const filtered = conversations.filter(conv => 
+            (conv.userName && conv.userName.toLowerCase().includes(term.toLowerCase())) ||
+            (conv.userEmail && conv.userEmail.toLowerCase().includes(term.toLowerCase()))
+        );
+        
+        setFilteredConversations(filtered);
+    };
+    
+    // Hàm để check nếu có tin nhắn chưa đọc
+    const hasUnreadMessages = () => {
+        return conversations.some(conv => conv.unreadCount > 0);
+    };
+    
+    // Hàm lấy tổng số tin nhắn chưa đọc
+    const getTotalUnreadMessages = () => {
+        return conversations.reduce((total, conv) => total + (conv.unreadCount || 0), 0);
+    };
 
     // Hàm lấy danh sách hóa đơn
     const fetchInvoices = async () => {
@@ -2043,6 +2328,224 @@ function Admin() {
                         </div>
                     </div>
                 );
+            case 'chat':
+                return (
+                    <div className={cx('chat-management')}>
+                        <h2>Quản lý cuộc hội thoại</h2>
+                        
+                        {!selectedConversation ? (
+                            <>
+                                <div className={cx('chat-actions')}>
+                                    <div className={cx('conversation-search')}>
+                                        <input
+                                            type="text"
+                                            placeholder="Tìm kiếm theo tên người dùng hoặc email..."
+                                            value={conversationSearchTerm}
+                                            onChange={handleConversationSearch}
+                                        />
+                                        <button><FontAwesomeIcon icon={faSearch} /></button>
+                                    </div>
+                                    
+                                    <button 
+                                        className={cx('refresh-btn')}
+                                        onClick={fetchConversations}
+                                    >
+                                        <i className="fas fa-sync"></i>
+                                        Làm mới
+                                    </button>
+                                </div>
+                                
+                                {/* Hiển thị bảng trên màn hình lớn */}
+                                <div className={cx('conversations-table-container', 'd-none-mobile')}>
+                                    {chatLoading ? (
+                                        <div className={cx('loading')}>Đang tải dữ liệu...</div>
+                                    ) : filteredConversations.length > 0 ? (
+                                        <table className={cx('conversations-table')}>
+                                            <thead>
+                                                <tr>
+                                                    <th>Người dùng</th>
+                                                    <th>Email</th>
+                                                    <th>Tin nhắn cuối</th>
+                                                    <th>Cập nhật</th>
+                                                    <th>Tin nhắn chưa đọc</th>
+                                                    <th>Thao tác</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {filteredConversations.map((conversation) => (
+                                                    <tr key={conversation._id}>
+                                                        <td>{conversation.userName || 'Khách'}</td>
+                                                        <td>{conversation.userEmail || 'Không có email'}</td>
+                                                        <td>{conversation.lastMessage || 'Chưa có tin nhắn'}</td>
+                                                        <td>{formatDate(conversation.lastUpdated)}</td>
+                                                        <td>
+                                                            {conversation.unreadCount > 0 ? (
+                                                                <span className={cx('unread-badge')}>{conversation.unreadCount}</span>
+                                                            ) : 'Không có'}
+                                                        </td>
+                                                        <td>
+                                                            <div className={cx('action-buttons')}>
+                                                                <button 
+                                                                    className={cx('view-btn')}
+                                                                    onClick={() => handleSelectConversation(conversation)}
+                                                                    title="Xem cuộc hội thoại"
+                                                                >
+                                                                    <FontAwesomeIcon icon={faEye} />
+                                                                </button>
+                                                                <button 
+                                                                    className={cx('delete-btn')}
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleDeleteConversation(conversation._id);
+                                                                    }}
+                                                                    title="Xóa cuộc hội thoại"
+                                                                >
+                                                                    <FontAwesomeIcon icon={faTrash} />
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    ) : (
+                                        <div className={cx('no-data')}>Không tìm thấy cuộc hội thoại nào</div>
+                                    )}
+                                </div>
+                                
+                                {/* Hiển thị giao diện mobile */}
+                                <div className={cx('conversation-mobile-list', 'd-block-mobile')}>
+                                    {chatLoading ? (
+                                        <div className={cx('loading')}>Đang tải dữ liệu...</div>
+                                    ) : filteredConversations.length > 0 ? (
+                                        filteredConversations.map((conversation) => (
+                                            <div key={conversation._id} className={cx('conversation-mobile-item')}>
+                                                <div className={cx('conversation-mobile-header')}>
+                                                    <div className={cx('conversation-user')}>{conversation.userName || 'Khách'}</div>
+                                                    <div className={cx('conversation-email')}>{conversation.userEmail || 'Không có email'}</div>
+                                                    <div className={cx('conversation-preview')}>{conversation.lastMessage || 'Chưa có tin nhắn'}</div>
+                                                    <div className={cx('conversation-time')}>{formatDate(conversation.lastUpdated)}</div>
+                                                    {conversation.unreadCount > 0 && (
+                                                        <div className={cx('unread-badge')}>{conversation.unreadCount} tin nhắn mới</div>
+                                                    )}
+                                                </div>
+                                                <div className={cx('conversation-mobile-actions')}>
+                                                    <button 
+                                                        className={cx('view-btn')}
+                                                        onClick={() => handleSelectConversation(conversation)}
+                                                    >
+                                                        <FontAwesomeIcon icon={faEye} /> Xem
+                                                    </button>
+                                                    <button 
+                                                        className={cx('delete-btn')}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDeleteConversation(conversation._id);
+                                                        }}
+                                                    >
+                                                        <FontAwesomeIcon icon={faTrash} /> Xóa
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className={cx('no-data')}>Không tìm thấy cuộc hội thoại nào</div>
+                                    )}
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <button 
+                                    className={cx('back-btn')}
+                                    onClick={() => setSelectedConversation(null)}
+                                >
+                                    <i className="fas fa-arrow-left"></i> Quay lại danh sách
+                                </button>
+                                
+                                <div className={cx('chat-container')}>
+                                    <div className={cx('chat-messages')}>
+                                        <div className={cx('messages-header')}>
+                                            <div className={cx('user-info')}>
+                                                <h3>{selectedConversation.userName || 'Khách'}</h3>
+                                                {selectedConversation.userEmail && (
+                                                    <div className={cx('user-email')}>{selectedConversation.userEmail}</div>
+                                                )}
+                                            </div>
+                                            <div className={cx('header-actions')}>
+                                                <button 
+                                                    onClick={() => handleDeleteConversation(selectedConversation._id)}
+                                                    title="Xóa cuộc hội thoại"
+                                                    className={cx('delete-conversation-btn')}
+                                                >
+                                                    <FontAwesomeIcon icon={faTrash} />
+                                                </button>
+                                                <button 
+                                                    onClick={() => setSelectedConversation(null)}
+                                                    title="Đóng"
+                                                >
+                                                    <FontAwesomeIcon icon={faTimes} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className={cx('messages-body')}>
+                                            {chatLoading ? (
+                                                <div className={cx('loading-messages')}>
+                                                    <div className={cx('spinner')}></div>
+                                                    Đang tải tin nhắn...
+                                                </div>
+                                            ) : messages.length > 0 ? (
+                                                <>
+                                                    {groupMessagesByDate(messages).map((group, groupIndex) => (
+                                                        <div key={groupIndex}>
+                                                            <div className={cx('chat-date-divider')}>
+                                                                <span>{group.date}</span>
+                                                            </div>
+                                                            {group.messages.map((message) => (
+                                                                <div 
+                                                                    key={message._id} 
+                                                                    className={cx('message', message.isAdmin ? 'admin-message' : 'user-message')}
+                                                                >
+                                                                    <div className={cx('message-bubble')}>
+                                                                        {message.text}
+                                                                    </div>
+                                                                    <div className={cx('message-meta')}>
+                                                                        <span>{message.isAdmin ? 'Admin' : message.senderName || 'Khách'}</span>
+                                                                        <span>{formatChatTime(message.createdAt)}</span>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ))}
+                                                    <div ref={messagesEndRef} /> {/* Auto scroll element */}
+                                                </>
+                                            ) : (
+                                                <div className={cx('no-conversation')}>
+                                                    <FontAwesomeIcon icon={faComments} />
+                                                    <p>Chưa có tin nhắn nào trong cuộc hội thoại này</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                        
+                                        <div className={cx('messages-footer')}>
+                                            <form className={cx('message-form')} onSubmit={handleSendChatMessage}>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Nhập tin nhắn..."
+                                                    value={newChatMessage}
+                                                    onChange={(e) => setNewChatMessage(e.target.value)}
+                                                />
+                                                <button type="submit" disabled={!newChatMessage.trim()}>
+                                                    <FontAwesomeIcon icon={faPaperPlane} />
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                );
             default:
                 return <p>Chọn một mục từ menu bên trái</p>;
         }
@@ -2098,6 +2601,15 @@ function Admin() {
                     </li>
                     <li className={cx('sidebar-item')}>
                         <a 
+                            className={cx('sidebar-link', { active: activeTab === 'chat' })}
+                            onClick={() => handleMenuItemClick('chat')}
+                        >
+                            <FontAwesomeIcon icon={faComments} />
+                            <span className={cx('sidebar-text')}>Quản lý cuộc hội thoại</span>
+                        </a>
+                    </li>
+                    <li className={cx('sidebar-item')}>
+                        <a 
                             className={cx('sidebar-link')}
                             onClick={() => navigate('/')}
                         >
@@ -2122,6 +2634,93 @@ function Admin() {
         );
     };
 
+    // Hàm định dạng ngày giờ cho chat
+    const formatChatTime = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    };
+
+    // Hàm định dạng ngày tháng cho chat
+    const formatChatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('vi-VN', { 
+            year: 'numeric', 
+            month: '2-digit', 
+            day: '2-digit' 
+        });
+    };
+
+    // Hàm nhóm tin nhắn theo ngày
+    const groupMessagesByDate = (messages) => {
+        const groups = {};
+        
+        messages.forEach(message => {
+            const date = new Date(message.createdAt);
+            const dateString = date.toLocaleDateString('vi-VN');
+            
+            if (!groups[dateString]) {
+                groups[dateString] = [];
+            }
+            
+            groups[dateString].push(message);
+        });
+        
+        // Chuyển thành mảng có thể render
+        return Object.entries(groups).map(([date, messages]) => ({
+            date,
+            messages
+        }));
+    };
+
+    // Thêm hàm xóa cuộc hội thoại sau hàm handleConversationSearch
+    const handleDeleteConversation = async (conversationId) => {
+        // Hiển thị confirm trước khi xóa
+        if (!window.confirm('Bạn có chắc chắn muốn xóa cuộc hội thoại này? Tất cả tin nhắn sẽ bị xóa vĩnh viễn.')) {
+            return;
+        }
+        
+        try {
+            setChatLoading(true);
+            const response = await axios.delete(`${API_URL}/chat/conversation/${conversationId}`, {
+                withCredentials: true,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.data.success) {
+                // Cập nhật UI
+                setConversations(prev => prev.filter(conv => conv._id !== conversationId));
+                setFilteredConversations(prev => prev.filter(conv => conv._id !== conversationId));
+                
+                // Nếu đang xem cuộc hội thoại bị xóa, quay về danh sách
+                if (selectedConversation && selectedConversation._id === conversationId) {
+                    setSelectedConversation(null);
+                    setMessages([]);
+                }
+                
+                showToast({
+                    title: "Thành công",
+                    message: "Đã xóa cuộc hội thoại thành công",
+                    type: "success",
+                    duration: 3000
+                });
+            } else {
+                throw new Error(response.data.message || "Không thể xóa cuộc hội thoại");
+            }
+        } catch (error) {
+            console.error('Lỗi khi xóa cuộc hội thoại:', error);
+            showToast({
+                title: "Lỗi",
+                message: error.response?.data?.message || "Không thể xóa cuộc hội thoại",
+                type: "error",
+                duration: 3000
+            });
+        } finally {
+            setChatLoading(false);
+        }
+    };
+
     return (
         <div className={cx('admin-container')}>
             {renderSidebar()}
@@ -2136,6 +2735,7 @@ function Admin() {
                         {activeTab === 'products' && 'Quản lý sản phẩm'}
                         {activeTab === 'invoices' && 'Quản lý hóa đơn'}
                         {activeTab === 'users' && 'Quản lý người dùng'}
+                        {activeTab === 'chat' && 'Quản lý cuộc hội thoại'}
                     </h2>
                 </div>
                 

@@ -16,13 +16,13 @@ const Info = () => {
             <a href="">
               <img src={accountIcon} alt="Avatar" />
             </a>
-            <h1>Nguyễn Đức Vương</h1>
-            <h2>MSSV: 21021221</h2>
+            <h1>Nguyễn Trần Hữu Thắng</h1>
+            <h2>MSSV: 21001231</h2>
           </header>
           <div className={cx('profile-bio')}>
             <p>Học tại Đại học Công nghiệp Thành phố Hồ Chí Minh</p>
             <p>Email:</p>
-            <a href="mailto:vuongnguyen221203@gmail.com" className={cx('email-link')}>vuongnguyen221203@gmail.com</a>
+            <a href="mailto:huuthanglovely@gmail.com" className={cx('email-link')}>huuthanglovely@gmail.com</a>
           </div>
           <ul className={cx('profile-social-links')}>
             <li>
@@ -63,13 +63,13 @@ const Info = () => {
             <a href="">
               <img src={accountIcon} alt="Avatar" />
             </a>
-            <h1>Phan Anh Tuấn</h1>
-            <h2>MSSV: </h2>
+            <h1>Nguyễn Văn Chương</h1>
+            <h2>MSSV: 21025231</h2>
           </header>
           <div className={cx('profile-bio')}>
             <p>Học tại Đại học Công nghiệp Thành phố Hồ Chí Minh</p>
             <p>Email:</p>
-            <a href="mailto:phantuan7a5@gmail.com" className={cx('email-link')}>phantuan7a5@gmail.com</a>
+            <a href="mailto:namtrae@gmail.com" className={cx('email-link')}>namtrae@gmail.com</a>
           </div>
           <ul className={cx('profile-social-links')}>
             <li>
