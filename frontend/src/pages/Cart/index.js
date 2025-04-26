@@ -253,9 +253,7 @@ function Cart() {
                                 <span>Thanh Toán</span>
                                 <span>0 VND</span>
                             </div>
-                            <button className={cx('checkoutBtn')} disabled>
-                                THANH TOÁN
-                            </button>
+                            <button disabled className={cx('checkoutBtn')}>THANH TOÁN</button>
                         </div>
                     </div>
                 </div>

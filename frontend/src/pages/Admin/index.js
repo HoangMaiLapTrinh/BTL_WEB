@@ -8,7 +8,7 @@ import { showToast } from '../../components/Toast/index.js';
 import { useNavigate } from 'react-router-dom';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTachometerAlt, faFileInvoice, faUsers, faSignOutAlt, faSearch, faPlus, faEye, faPencilAlt, faTrash, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faTachometerAlt, faFileInvoice, faUsers, faSignOutAlt, faSearch, faPlus, faEye, faPencilAlt, faTrash, faTimes, faBars } from '@fortawesome/free-solid-svg-icons';
 
 const cx = classNames.bind(styles);
 
@@ -76,6 +76,36 @@ function Admin() {
     const [showEditForm, setShowEditForm] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const [productImages, setProductImages] = useState([]);
+    
+    // State cho sidebar responsive
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+    // Toggle sidebar function
+    const toggleSidebar = () => {
+        setIsSidebarOpen(!isSidebarOpen);
+    };
+
+    // Đóng sidebar khi chọn menu trên mobile
+    const handleMenuItemClick = (tab) => {
+        setActiveTab(tab);
+        if (window.innerWidth <= 768) {
+            setIsSidebarOpen(false);
+        }
+    };
+
+    // Effect để xử lý resize window
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth > 768) {
+                setIsSidebarOpen(true);
+            }
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, []);
 
     const fetchDashboardData = async () => {
         try {
@@ -1068,73 +1098,164 @@ function Admin() {
         }
     };
 
+    // Component StatBox riêng để có thể tùy chỉnh dễ dàng
+    const StatBox = ({ icon, number, label, color }) => {
+        const colorClasses = {
+            blue: cx('stat-icon-blue'),
+            green: cx('stat-icon-green'),
+            orange: cx('stat-icon-orange'),
+            purple: cx('stat-icon-purple')
+        };
+        
+        return (
+            <div className={cx('stat-box')}>
+                <div className={cx('stat-icon', colorClasses[color] || '')}>
+                    <i className={icon}></i>
+                </div>
+                <div className={cx('stat-info')}>
+                    <div className={cx('stat-number')}>{number}</div>
+                    <div className={cx('stat-label')}>{label}</div>
+                </div>
+            </div>
+        );
+    };
+
     const renderContent = () => {
         switch (activeTab) {
             case 'dashboard':
                 return (
                     <div className={cx('dashboard-content')}>
-                        <div className={cx('stats-container')}>
-                            <div className={cx('stat-box')}>
-                                <div className={cx('stat-icon')}>
-                                    <i className="fas fa-shopping-bag"></i>
-                            </div>
-                                <div className={cx('stat-info')}>
-                                    <div className={cx('stat-number')}>{dashboardStats.totalOrders}</div>
-                                    <div className={cx('stat-label')}>Tổng đơn hàng</div>
-                            </div>
-                            </div>
-                            <div className={cx('stat-box')}>
-                                <div className={cx('stat-icon')}>
-                                    <i className="fas fa-users"></i>
-                                </div>
-                                <div className={cx('stat-info')}>
-                                    <div className={cx('stat-number')}>{dashboardStats.totalUsers}</div>
-                                    <div className={cx('stat-label')}>Người dùng</div>
-                                </div>
-                            </div>
-                            <div className={cx('stat-box')}>
-                                <div className={cx('stat-icon')}>
-                                    <i className="fas fa-box"></i>
-                                </div>
-                                <div className={cx('stat-info')}>
-                                    <div className={cx('stat-number')}>{dashboardStats.totalProducts}</div>
-                                    <div className={cx('stat-label')}>Sản phẩm</div>
-                                </div>
-                            </div>
-                            <div className={cx('stat-box')}>
-                                <div className={cx('stat-icon')}>
-                                    <i className="fas fa-dollar-sign"></i>
-                                </div>
-                                <div className={cx('stat-info')}>
-                                    <div className={cx('stat-number')}>{formatCurrency(dashboardStats.recentOrders.reduce((total, order) => total + order.totalPrice, 0))}</div>
-                                    <div className={cx('stat-label')}>Doanh thu</div>
-                                </div>
+                        <div className={cx('dashboard-header')}>
+                        </div>
+                        <div className={cx('stats-container-wrapper')}>
+                            <div className={cx('stats-container')}>
+                                <StatBox 
+                                    icon="fas fa-shopping-bag" 
+                                    number={dashboardStats.totalOrders} 
+                                    label="Tổng đơn hàng"
+                                    color="blue"
+                                />
+                                <StatBox 
+                                    icon="fas fa-users" 
+                                    number={dashboardStats.totalUsers} 
+                                    label="Người dùng"
+                                    color="green"
+                                />
+                                <StatBox 
+                                    icon="fas fa-box" 
+                                    number={dashboardStats.totalProducts} 
+                                    label="Sản phẩm"
+                                    color="orange"
+                                />
+                                <StatBox 
+                                    icon="fas fa-dollar-sign" 
+                                    number={formatCurrency(dashboardStats.recentOrders.reduce((total, order) => total + order.totalPrice, 0))} 
+                                    label="Doanh thu"
+                                    color="purple"
+                                />
                             </div>
                         </div>
 
                         <div className={cx('recent-orders')}>
                             <h3>Đơn hàng gần đây</h3>
-                            <table className={cx('orders-table')}>
-                                <thead>
-                                    <tr>
-                                        <th>Mã đơn</th>
-                                        <th>Khách hàng</th>
-                                        <th>Thời gian</th>
-                                        <th>Tổng tiền</th>
-                                        <th>Phương thức TT</th>
-                                        <th>Trạng thái</th>
-                                        <th>Thao tác</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {dashboardStats.recentOrders.map((order) => (
-                                        <tr key={order._id}>
-                                            <td>#{order._id.slice(-6)}</td>
-                                            <td>{order.shippingInfo?.fullName || 'Không có tên'}</td>
-                                            <td>{formatDate(order.createdAt)}</td>
-                                            <td>{formatCurrency(order.totalPrice)}</td>
-                                            <td>{order.paymentMethod === "Banking" ? "Chuyển khoản" : "Tiền mặt (COD)"}</td>
-                                            <td>
+                            {/* Hiển thị bảng trên màn hình lớn */}
+                            <div className={cx('table-responsive', 'd-none-mobile')}>
+                                <table className={cx('orders-table')}>
+                                    <thead>
+                                        <tr>
+                                            <th>Mã đơn</th>
+                                            <th>Khách hàng</th>
+                                            <th>Thời gian</th>
+                                            <th>Tổng tiền</th>
+                                            <th>Phương thức TT</th>
+                                            <th>Trạng thái</th>
+                                            <th>Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {dashboardStats.recentOrders.length > 0 ? (
+                                            dashboardStats.recentOrders.map((order) => (
+                                                <tr key={order._id}>
+                                                    <td>#{order._id.slice(-6)}</td>
+                                                    <td>{order.shippingInfo?.fullName || 'Không có tên'}</td>
+                                                    <td>{formatDate(order.createdAt)}</td>
+                                                    <td>{formatCurrency(order.totalPrice)}</td>
+                                                    <td>{order.paymentMethod === "Banking" ? "Chuyển khoản" : "Tiền mặt (COD)"}</td>
+                                                    <td>
+                                                        <span
+                                                            className={cx('status', {
+                                                                'pending': order.orderStatus === 'Pending',
+                                                                'processing': order.orderStatus === 'Processing',
+                                                                'shipped': order.orderStatus === 'Shipped',
+                                                                'delivered': order.orderStatus === 'Delivered',
+                                                                'cancelled': order.orderStatus === 'Cancelled'
+                                                            })}
+                                                        >
+                                                            {getStatusVietnamese(order.orderStatus)}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <div className={cx('action-buttons')}>
+                                                            <button 
+                                                                className={cx('view-btn')}
+                                                                onClick={() => handleViewInvoice(order)}
+                                                                title="Xem chi tiết"
+                                                            >
+                                                                <i className="fas fa-eye"></i>
+                                                            </button>
+                                                            {order.orderStatus !== 'Delivered' && order.orderStatus !== 'Cancelled' && (
+                                                                <button 
+                                                                    className={cx('cancel-btn')}
+                                                                    onClick={() => handleCancelOrder(order._id)}
+                                                                    title="Hủy đơn hàng"
+                                                                >
+                                                                    <i className="fas fa-times"></i>
+                                                                </button>
+                                                            )}
+                                                            <button 
+                                                                className={cx('delete-btn')}
+                                                                onClick={() => handleRemoveOrder(order._id)}
+                                                                title="Xóa đơn hàng"
+                                                            >
+                                                                <i className="fas fa-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan="7" className={cx('no-data')}>Chưa có đơn hàng nào</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Hiển thị danh sách dạng card trên mobile */}
+                            <div className={cx('recent-orders-mobile', 'd-block-mobile')}>
+                                {dashboardStats.recentOrders.length > 0 ? (
+                                    dashboardStats.recentOrders.map((order) => (
+                                        <div key={order._id} className={cx('mobile-order-item')}>
+                                            <div className={cx('mobile-order-header')}>
+                                                <div className={cx('order-id')}>#{order._id.slice(-6)}</div>
+                                                <div className={cx('order-date')}>{formatDate(order.createdAt)}</div>
+                                            </div>
+                                            <div className={cx('mobile-order-details')}>
+                                                <div className={cx('detail-row')}>
+                                                    <div className={cx('detail-label')}>Khách hàng:</div>
+                                                    <div className={cx('detail-value')}>{order.shippingInfo?.fullName || 'Không có tên'}</div>
+                                                </div>
+                                                <div className={cx('detail-row')}>
+                                                    <div className={cx('detail-label')}>Tổng tiền:</div>
+                                                    <div className={cx('detail-value')}>{formatCurrency(order.totalPrice)}</div>
+                                                </div>
+                                                <div className={cx('detail-row')}>
+                                                    <div className={cx('detail-label')}>Phương thức:</div>
+                                                    <div className={cx('detail-value')}>{order.paymentMethod === "Banking" ? "Chuyển khoản" : "Tiền mặt (COD)"}</div>
+                                                </div>
+                                            </div>
+                                            <div className={cx('mobile-order-status')}>
                                                 <span
                                                     className={cx('status', {
                                                         'pending': order.orderStatus === 'Pending',
@@ -1146,38 +1267,35 @@ function Admin() {
                                                 >
                                                     {getStatusVietnamese(order.orderStatus)}
                                                 </span>
-                                            </td>
-                                            <td>
-                                                <div className={cx('action-buttons')}>
+                                            </div>
+                                            <div className={cx('mobile-order-actions')}>
+                                                <button 
+                                                    className={cx('view-btn')}
+                                                    onClick={() => handleViewInvoice(order)}
+                                                >
+                                                    <i className="fas fa-eye"></i> Xem
+                                                </button>
+                                                {order.orderStatus !== 'Delivered' && order.orderStatus !== 'Cancelled' && (
                                                     <button 
-                                                        className={cx('view-btn')}
-                                                        onClick={() => handleViewInvoice(order)}
-                                                        title="Xem chi tiết"
+                                                        className={cx('cancel-btn')}
+                                                        onClick={() => handleCancelOrder(order._id)}
                                                     >
-                                                        <i className="fas fa-eye"></i>
+                                                        <i className="fas fa-times"></i> Hủy
                                                     </button>
-                                                    {order.orderStatus !== 'Delivered' && order.orderStatus !== 'Cancelled' && (
-                                                        <button 
-                                                            className={cx('cancel-btn')}
-                                                            onClick={() => handleCancelOrder(order._id)}
-                                                            title="Hủy đơn hàng"
-                                                        >
-                                                            <i className="fas fa-times"></i>
-                                                        </button>
-                                                    )}
-                                                    <button 
-                                                        className={cx('delete-btn')}
-                                                        onClick={() => handleRemoveOrder(order._id)}
-                                                        title="Xóa đơn hàng"
-                                                    >
-                                                        <i className="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                                )}
+                                                <button 
+                                                    className={cx('delete-btn')}
+                                                    onClick={() => handleRemoveOrder(order._id)}
+                                                >
+                                                    <i className="fas fa-trash"></i> Xóa
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className={cx('no-data')}>Chưa có đơn hàng nào</div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 );
@@ -1212,7 +1330,8 @@ function Admin() {
                             </div>
                         </div>
                         
-                        <div className={cx('invoice-table-container')}>
+                        {/* Hiển thị bảng trên màn hình lớn */}
+                        <div className={cx('invoice-table-container', 'd-none-mobile')}>
                             <table className={cx('invoice-table')}>
                                 <thead>
                                     <tr>
@@ -1277,6 +1396,71 @@ function Admin() {
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
+                        
+                        {/* Hiển thị giao diện mobile */}
+                        <div className={cx('invoice-mobile-list', 'd-block-mobile')}>
+                            {filteredInvoices.length > 0 ? (
+                                filteredInvoices.map((invoice) => (
+                                    <div key={invoice._id} className={cx('invoice-mobile-item')}>
+                                        <div className={cx('invoice-mobile-header')}>
+                                            <div className={cx('invoice-id')}>#{invoice._id.slice(-6)}</div>
+                                            <div className={cx('invoice-date')}>{formatDate(invoice.createdAt)}</div>
+                                        </div>
+                                        <div className={cx('invoice-mobile-details')}>
+                                            <div className={cx('detail-row')}>
+                                                <div className={cx('detail-label')}>Khách hàng:</div>
+                                                <div className={cx('detail-value')}>{invoice.shippingInfo?.fullName || 'Không có tên'}</div>
+                                            </div>
+                                            <div className={cx('detail-row')}>
+                                                <div className={cx('detail-label')}>Tổng tiền:</div>
+                                                <div className={cx('detail-value')}>{formatCurrency(invoice.totalPrice)}</div>
+                                            </div>
+                                            <div className={cx('detail-row')}>
+                                                <div className={cx('detail-label')}>Phương thức:</div>
+                                                <div className={cx('detail-value')}>{invoice.paymentMethod === "Banking" ? "Chuyển khoản" : "Tiền mặt (COD)"}</div>
+                                            </div>
+                                        </div>
+                                        <div className={cx('invoice-mobile-status')}>
+                                            <span
+                                                className={cx('status', {
+                                                    'pending': invoice.orderStatus === 'Pending',
+                                                    'processing': invoice.orderStatus === 'Processing',
+                                                    'shipped': invoice.orderStatus === 'Shipped',
+                                                    'delivered': invoice.orderStatus === 'Delivered',
+                                                    'cancelled': invoice.orderStatus === 'Cancelled'
+                                                })}
+                                            >
+                                                {getStatusVietnamese(invoice.orderStatus)}
+                                            </span>
+                                        </div>
+                                        <div className={cx('invoice-mobile-actions')}>
+                                            <button 
+                                                className={cx('view-btn')}
+                                                onClick={() => handleViewInvoice(invoice)}
+                                            >
+                                                <i className="fas fa-eye"></i> Xem
+                                            </button>
+                                            {invoice.orderStatus !== 'Delivered' && invoice.orderStatus !== 'Cancelled' && (
+                                                <button 
+                                                    className={cx('cancel-btn')}
+                                                    onClick={() => handleCancelOrder(invoice._id)}
+                                                >
+                                                    <i className="fas fa-times"></i> Hủy
+                                                </button>
+                                            )}
+                                            <button 
+                                                className={cx('delete-btn')}
+                                                onClick={() => handleRemoveOrder(invoice._id)}
+                                            >
+                                                <i className="fas fa-trash"></i> Xóa
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className={cx('no-data')}>Không tìm thấy đơn hàng nào</div>
+                            )}
                         </div>
                         
                         {/* Modal chi tiết hóa đơn */}
@@ -1394,7 +1578,7 @@ function Admin() {
                             <div className={cx('user-search')}>
                                 <input
                                     type="text"
-                                    placeholder="Tìm kiếm người dùng..."
+                                    placeholder="Tìm kiếm theo tên, email hoặc số điện thoại..."
                                     value={userSearchTerm}
                                     onChange={(e) => setUserSearchTerm(e.target.value)}
                                 />
@@ -1405,57 +1589,110 @@ function Admin() {
                                 className={cx('add-user-btn')}
                                 onClick={handleAddUser}
                             >
-                                <i className="fas fa-plus"></i> Thêm người dùng
+                                <i className="fas fa-plus"></i>
+                                Thêm người dùng mới
                             </button>
                         </div>
                         
-                        <div className={cx('users-table-container')}>
+                        {/* Hiển thị bảng trên màn hình lớn */}
+                        <div className={cx('users-table-container', 'd-none-mobile')}>
                             <table className={cx('users-table')}>
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
                                         <th>Họ tên</th>
                                         <th>Email</th>
+                                        <th>Số điện thoại</th>
                                         <th>Vai trò</th>
+                                        <th>Ngày tạo</th>
                                         <th>Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {filteredUsers.map((user) => (
                                         <tr key={user._id}>
-                                            <td>#{user._id.slice(-6)}</td>
                                             <td>{user.name}</td>
                                             <td>{user.email}</td>
+                                            <td>{user.phone || 'Chưa cập nhật'}</td>
                                             <td>
                                                 <span className={cx('role', {
                                                     'admin': user.role === 'admin',
                                                     'user': user.role === 'user'
                                                 })}>
-                                                    {user.role === 'admin' ? 'Admin' : 'Người dùng'}
+                                                    {user.role === 'admin' ? 'Quản trị viên' : 'Người dùng'}
                                                 </span>
                                             </td>
+                                            <td>{formatDate(user.createdAt)}</td>
                                             <td>
                                                 <div className={cx('action-buttons')}>
                                                     <button 
                                                         className={cx('edit-btn')}
                                                         onClick={() => handleEditUser(user)}
+                                                        title="Chỉnh sửa"
                                                     >
-                                                        <i className="fas fa-edit"></i>
+                                                        <i className="fas fa-pencil-alt"></i>
                                                     </button>
-                                                    {user.role !== 'admin' && (
-                                                        <button 
-                                                            className={cx('delete-btn')}
-                                                            onClick={() => handleDeleteUser(user._id)}
-                                                        >
-                                                            <i className="fas fa-trash"></i>
-                                                        </button>
-                                                    )}
+                                                    <button 
+                                                        className={cx('delete-btn')}
+                                                        onClick={() => handleDeleteUser(user._id)}
+                                                        title="Xóa"
+                                                    >
+                                                        <i className="fas fa-trash"></i>
+                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
+                        
+                        {/* Hiển thị giao diện mobile */}
+                        <div className={cx('user-mobile-list', 'd-block-mobile')}>
+                            {filteredUsers.length > 0 ? (
+                                filteredUsers.map((user) => (
+                                    <div key={user._id} className={cx('user-mobile-item')}>
+                                        <div className={cx('user-mobile-header')}>
+                                            <div className={cx('user-name')}>{user.name}</div>
+                                            <span className={cx('user-role', {
+                                                'admin': user.role === 'admin',
+                                                'user': user.role === 'user'
+                                            })}>
+                                                {user.role === 'admin' ? 'Admin' : 'User'}
+                                            </span>
+                                        </div>
+                                        <div className={cx('user-mobile-details')}>
+                                            <div className={cx('detail-row')}>
+                                                <div className={cx('detail-label')}>Email:</div>
+                                                <div className={cx('detail-value')}>{user.email}</div>
+                                            </div>
+                                            <div className={cx('detail-row')}>
+                                                <div className={cx('detail-label')}>SĐT:</div>
+                                                <div className={cx('detail-value')}>{user.phone || 'Chưa cập nhật'}</div>
+                                            </div>
+                                            <div className={cx('detail-row')}>
+                                                <div className={cx('detail-label')}>Ngày tạo:</div>
+                                                <div className={cx('detail-value')}>{formatDate(user.createdAt)}</div>
+                                            </div>
+                                        </div>
+                                        <div className={cx('user-mobile-actions')}>
+                                            <button 
+                                                className={cx('edit-btn')}
+                                                onClick={() => handleEditUser(user)}
+                                            >
+                                                <i className="fas fa-pencil-alt"></i> Sửa
+                                            </button>
+                                            <button 
+                                                className={cx('delete-btn')}
+                                                onClick={() => handleDeleteUser(user._id)}
+                                            >
+                                                <i className="fas fa-trash"></i> Xóa
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className={cx('no-data')}>Không tìm thấy người dùng nào</div>
+                            )}
                         </div>
                         
                         {/* Modal thêm/chỉnh sửa người dùng */}
@@ -1493,6 +1730,16 @@ function Admin() {
                                             />
                                         </div>
                                         
+                                        <div className={cx('form-group')}>
+                                            <label>Số điện thoại</label>
+                                            <input
+                                                type="text"
+                                                placeholder="Nhập số điện thoại"
+                                                value={newUser.phone}
+                                                onChange={(e) => setNewUser({...newUser, phone: e.target.value})}
+                                            />
+                                        </div>
+                                        
                                         {!selectedUser && (
                                             <div className={cx('form-group')}>
                                                 <label>Mật khẩu</label>
@@ -1511,8 +1758,8 @@ function Admin() {
                                                 value={newUser.role}
                                                 onChange={(e) => setNewUser({...newUser, role: e.target.value})}
                                             >
-                                                <option value="USER">Người dùng</option>
-                                                <option value="ADMIN">Admin</option>
+                                                <option value="user">Người dùng</option>
+                                                <option value="admin">Quản trị viên</option>
                                             </select>
                                         </div>
                                     </div>
@@ -1801,58 +2048,97 @@ function Admin() {
         }
     };
 
-    return (
-        <div className={cx('admin-container')}>
-            <div className={cx('sidebar')}>
+    // Hàm render sidebar
+    const renderSidebar = () => {
+        return (
+            <div className={cx('sidebar', { 'sidebar-closed': !isSidebarOpen })}>
+                <button 
+                    className={cx('close-sidebar-btn')} 
+                    onClick={toggleSidebar}
+                    aria-label="Đóng menu"
+                >
+                    <FontAwesomeIcon icon={faTimes} />
+                </button>
                 <ul className={cx('sidebar-menu')}>
                     <li className={cx('sidebar-item')}>
-                        <div 
+                        <a 
                             className={cx('sidebar-link', { active: activeTab === 'dashboard' })}
-                            onClick={() => setActiveTab('dashboard')}
+                            onClick={() => handleMenuItemClick('dashboard')}
                         >
-                            <i className="fas fa-tachometer-alt"></i>
-                            Bảng điều khiển
-                        </div>
+                            <FontAwesomeIcon icon={faTachometerAlt} />
+                            <span className={cx('sidebar-text')}>Bảng điều khiển</span>
+                        </a>
                     </li>
                     <li className={cx('sidebar-item')}>
-                        <div 
-                            className={cx('sidebar-link', { active: activeTab === 'invoices' })}
-                            onClick={() => setActiveTab('invoices')}
-                        >
-                            <i className="fas fa-file-invoice"></i>
-                            Hóa đơn
-                        </div>
-                    </li>
-                    <li className={cx('sidebar-item')}>
-                        <div 
+                        <a 
                             className={cx('sidebar-link', { active: activeTab === 'products' })}
-                            onClick={() => setActiveTab('products')}
+                            onClick={() => handleMenuItemClick('products')}
                         >
-                            <i className="fas fa-box-open"></i>
-                            Sản phẩm
-                        </div>
+                            <i className="fas fa-box"></i>
+                            <span className={cx('sidebar-text')}>Quản lý sản phẩm</span>
+                        </a>
                     </li>
                     <li className={cx('sidebar-item')}>
-                        <div 
+                        <a 
+                            className={cx('sidebar-link', { active: activeTab === 'invoices' })}
+                            onClick={() => handleMenuItemClick('invoices')}
+                        >
+                            <FontAwesomeIcon icon={faFileInvoice} />
+                            <span className={cx('sidebar-text')}>Quản lý hóa đơn</span>
+                        </a>
+                    </li>
+                    <li className={cx('sidebar-item')}>
+                        <a 
                             className={cx('sidebar-link', { active: activeTab === 'users' })}
-                            onClick={() => setActiveTab('users')}
+                            onClick={() => handleMenuItemClick('users')}
                         >
-                            <i className="fas fa-users"></i>
-                            Người dùng
-                        </div>
+                            <FontAwesomeIcon icon={faUsers} />
+                            <span className={cx('sidebar-text')}>Quản lý người dùng</span>
+                        </a>
                     </li>
                     <li className={cx('sidebar-item')}>
-                        <div 
+                        <a 
                             className={cx('sidebar-link')}
                             onClick={() => navigate('/')}
                         >
                             <i className="fas fa-home"></i>
-                            Về trang chủ
-                        </div>
+                            <span className={cx('sidebar-text')}>Trang chủ</span>
+                        </a>
+                    </li>
+                    <li className={cx('sidebar-item')}>
+                        <a 
+                            className={cx('sidebar-link')}
+                            onClick={() => {
+                                localStorage.removeItem('token');
+                                navigate('/login');
+                            }}
+                        >
+                            <FontAwesomeIcon icon={faSignOutAlt} />
+                            <span className={cx('sidebar-text')}>Đăng xuất</span>
+                        </a>
                     </li>
                 </ul>
             </div>
-            <div className={cx('content')}>
+        );
+    };
+
+    return (
+        <div className={cx('admin-container')}>
+            {renderSidebar()}
+            
+            <div className={cx('content', { 'content-expanded': !isSidebarOpen })}>
+                <div className={cx('header')}>
+                    <button className={cx('hamburger-btn')} onClick={toggleSidebar}>
+                        <FontAwesomeIcon icon={faBars} />
+                    </button>
+                    <h2>
+                        {activeTab === 'dashboard' && 'Bảng điều khiển'}
+                        {activeTab === 'products' && 'Quản lý sản phẩm'}
+                        {activeTab === 'invoices' && 'Quản lý hóa đơn'}
+                        {activeTab === 'users' && 'Quản lý người dùng'}
+                    </h2>
+                </div>
+                
                 {renderContent()}
             </div>
             {/* Modal chỉnh sửa sản phẩm */}

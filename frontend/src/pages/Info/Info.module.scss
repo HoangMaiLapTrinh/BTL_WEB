@@ -8,6 +8,7 @@
     height: 100%;
     font: normal 14px/1.618em "Roboto", sans-serif;
     -webkit-font-smoothing: antialiased;
+    overflow: hidden;
 
     &::before {
         content: "";
@@ -25,49 +26,174 @@
     }
 }
 
+.profiles-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 3;
+    overflow: hidden;
+    
+    @media screen and (min-width: 992px) {
+        flex-direction: row;
+        justify-content: space-around;
+    }
+    
+    @media screen and (max-width: 1024px) and (max-height: 600px) {
+        padding-top: 20px;
+    }
+    
+    @media screen and (max-width: 1280px) and (max-height: 800px) {
+        padding-top: 10px;
+    }
+    
+    @media screen and (max-width: 767px) {
+        flex-direction: column;
+        justify-content: flex-start;
+        padding: 10px;
+        overflow-y: auto;
+        height: auto;
+        min-height: 100%;
+    }
+}
+
 .profile-card {
     background: #FFB300;
     width: 56px;
     height: 56px;
-    position: absolute;
-    top: 50%;
+    position: relative;
     z-index: 2;
     overflow: hidden;
     opacity: 0;
-    margin-top: 70px;
-    transform: translate(-50%, -50%);
+    margin: 20px 0;
+    transform: translate(0, 0);
     border-radius: 50%;
     box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16), 0px 3px 6px rgba(0, 0, 0, 0.23);
     animation: init 0.5s 0.2s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards, 
               moveDown 1s 0.8s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards, 
               moveUp 1s 1.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, 
-              materia_landscape 0.5s 2.7s cubic-bezier(0.86, 0, 0.07, 1) forwards;
+              materia_portrait 0.5s 2.7s cubic-bezier(0.86, 0, 0.07, 1) forwards;
+
+    @media screen and (min-width: 992px) {
+        margin: 0 20px;
+        animation: init 0.5s 0.2s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards, 
+                  moveDown 1s 0.8s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards, 
+                  moveUp 1s 1.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, 
+                  materia_landscape 0.5s 2.7s cubic-bezier(0.86, 0, 0.07, 1) forwards;
+    }
+    
+    @media screen and (max-width: 1024px) and (max-height: 600px) {
+        margin: 0 10px;
+        animation: init 0.5s 0.2s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards, 
+                  moveDown 1s 0.8s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards, 
+                  moveUp 1s 1.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, 
+                  materia_small_landscape 0.5s 2.7s cubic-bezier(0.86, 0, 0.07, 1) forwards;
+    }
+    
+    @media screen and (max-width: 1280px) and (max-height: 800px) {
+        margin: 0 15px;
+        animation: init 0.5s 0.2s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards, 
+                  moveDown 1s 0.8s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards, 
+                  moveUp 1s 1.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, 
+                  materia_medium_landscape 0.5s 2.7s cubic-bezier(0.86, 0, 0.07, 1) forwards;
+    }
+    
+    @media screen and (max-width: 767px) {
+        margin: 15px 0;
+        animation: init 0.5s 0.2s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards, 
+                  moveDown 1s 0.8s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards, 
+                  moveUp 1s 1.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, 
+                  materia_mobile 0.5s 2.7s cubic-bezier(0.86, 0, 0.07, 1) forwards;
+    }
 
     header {
         width: 179px;
-        height: 280px;
+        height: auto;
         padding: 40px 20px 30px 20px;
         display: inline-block;
-        float: left;
-        border-right: 2px dashed #EEEEEE;
+        float: none;
+        text-align: center;
         background: #FFFFFF;
         color: #000000;
         margin-top: 50px;
         opacity: 0;
-        text-align: center;
         animation: moveIn 1s 3.1s ease forwards;
+        
+        @media screen and (min-width: 992px) {
+            width: 179px;
+            height: 280px;
+            float: left;
+            border-right: 2px dashed #EEEEEE;
+        }
+        
+        @media screen and (max-width: 1024px) and (max-height: 600px) {
+            width: 100px;
+            height: 150px;
+            float: left;
+            border-right: 2px dashed #EEEEEE;
+            padding: 20px 10px 10px 10px;
+            margin-top: 20px;
+        }
+        
+        @media screen and (max-width: 1280px) and (max-height: 800px) {
+            width: 140px;
+            height: 200px;
+            float: left;
+            border-right: 2px dashed #EEEEEE;
+            padding: 30px 15px 20px 15px;
+            margin-top: 40px;
+        }
+        
+        @media screen and (max-width: 767px) {
+            width: 100%;
+            height: auto;
+            float: none;
+            border-right: none;
+            border-bottom: none;
+            padding: 20px;
+            margin-top: 0;
+            text-align: center;
+        }
 
         h1 {
             color: #FF5722;
             font-size: 24px;
             font-weight: 400;
             margin: 0px 0px 5px 0px;
+            word-wrap: break-word;
+            
+            @media screen and (max-width: 1024px) and (max-height: 600px) {
+                font-size: 16px;
+            }
+            
+            @media screen and (max-width: 1280px) and (max-height: 800px) {
+                font-size: 20px;
+            }
+            
+            @media screen and (max-width: 767px) {
+                font-size: 18px;
+            }
         }
 
         h2 {
             font-size: 16px;
             font-weight: 400;
             margin: 0px 0px 5px 0px;
+            
+            @media screen and (max-width: 1024px) and (max-height: 600px) {
+                font-size: 12px;
+            }
+            
+            @media screen and (max-width: 1280px) and (max-height: 800px) {
+                font-size: 14px;
+            }
+            
+            @media screen and (max-width: 767px) {
+                font-size: 14px;
+            }
         }
 
         a {
@@ -75,6 +201,18 @@
             text-align: center;
             position: relative;
             margin: 25px 30px;
+            
+            @media screen and (max-width: 1024px) and (max-height: 600px) {
+                margin: 10px;
+            }
+            
+            @media screen and (max-width: 1280px) and (max-height: 800px) {
+                margin: 15px 20px;
+            }
+            
+            @media screen and (max-width: 767px) {
+                margin: 10px 0;
+            }
 
             &::after {
                 position: absolute;
@@ -97,6 +235,18 @@
                 border-radius: 50%;
                 transition: box-shadow 0.3s ease;
                 box-shadow: 0px 0px 0px 8px rgba(0, 0, 0, 0.06);
+                
+                @media screen and (max-width: 1024px) and (max-height: 600px) {
+                    width: 70px;
+                }
+                
+                @media screen and (max-width: 1280px) and (max-height: 800px) {
+                    width: 90px;
+                }
+                
+                @media screen and (max-width: 767px) {
+                    width: 80px;
+                }
 
                 &:hover {
                     box-shadow: 0px 0px 0px 12px rgba(0, 0, 0, 0.1);
@@ -107,17 +257,55 @@
 }
 
 .profile-bio {
-    width: 175px;
-    height: 180px;
-    display: inline-block;
-    float: right;
-    padding: 50px 20px 30px 20px;
+    width: auto;
+    height: auto;
+    display: block;
+    float: none;
+    padding: 30px 20px;
     background: #FFFFFF;
     color: #333333;
-    margin-top: 50px;
     text-align: center;
     opacity: 0;
     animation: moveIn 1s 3.1s ease forwards;
+    
+    @media screen and (min-width: 992px) {
+        width: 175px;
+        height: 180px;
+        display: inline-block;
+        float: right;
+        padding: 50px 20px 30px 20px;
+        margin-top: 50px;
+    }
+    
+    @media screen and (max-width: 1024px) and (max-height: 600px) {
+        width: 100px;
+        height: 100px;
+        display: inline-block;
+        float: right;
+        padding: 20px 10px 10px 10px;
+        margin-top: 20px;
+        font-size: 12px;
+    }
+    
+    @media screen and (max-width: 1280px) and (max-height: 800px) {
+        width: 150px;
+        height: 160px;
+        display: inline-block;
+        float: right;
+        padding: 30px 15px 20px 15px;
+        margin-top: 40px;
+        font-size: 14px;
+    }
+    
+    @media screen and (max-width: 767px) {
+        width: 100%;
+        height: auto;
+        display: none;
+        float: none;
+        padding: 15px;
+        margin-top: 0;
+        font-size: 14px;
+    }
 
     p {
         margin: 0px;
@@ -125,21 +313,72 @@
 
     a {
         color: blue;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        display: inline-block;
+        max-width: 100%;
+    }
+    
+    .email-link {
+        font-size: 14px;
+        word-break: break-all;
+        
+        @media screen and (max-width: 1024px) and (max-height: 600px) {
+            font-size: 10px;
+        }
+        
+        @media screen and (max-width: 1280px) and (max-height: 800px) {
+            font-size: 12px;
+        }
+        
+        @media screen and (max-width: 767px) {
+            font-size: 12px;
+        }
     }
 }
 
 .profile-social-links {
-    width: 218px;
-    display: inline-block;
-    float: right;
+    width: 100%;
+    display: block;
+    float: none;
     margin: 0px;
     padding: 15px 20px;
     background: #FFFFFF;
-    margin-top: 50px;
     text-align: center;
     opacity: 0;
     box-sizing: border-box;
     animation: moveIn 1s 3.1s ease forwards;
+    
+    @media screen and (min-width: 992px) {
+        width: 218px;
+        display: inline-block;
+        float: right;
+        margin-top: 50px;
+    }
+    
+    @media screen and (max-width: 1024px) and (max-height: 600px) {
+        width: 100%;
+        display: inline-block;
+        float: none;
+        margin-top: 0;
+        padding: 10px;
+    }
+    
+    @media screen and (max-width: 1280px) and (max-height: 800px) {
+        width: 190px;
+        display: inline-block;
+        float: right;
+        margin-top: 20px;
+        padding: 10px 15px;
+    }
+    
+    @media screen and (max-width: 767px) {
+        width: 100%;
+        display: none;
+        float: none;
+        margin-top: 0;
+        padding: 10px;
+    }
 
     li {
         list-style: none;
@@ -157,6 +396,18 @@
             position: relative;
             overflow: hidden !important;
             border-radius: 50%;
+            
+            @media screen and (max-width: 1024px) and (max-height: 600px) {
+                width: 16px;
+                height: 16px;
+                padding: 4px;
+            }
+            
+            @media screen and (max-width: 1280px) and (max-height: 800px) {
+                width: 20px;
+                height: 20px;
+                padding: 5px;
+            }
 
             &::before {
                 display: block;
@@ -171,6 +422,16 @@
                 transition: transform 0.4s ease, opacity 1s ease-out;
                 transform: scale3d(0, 0, 1);
                 border-radius: 50%;
+                
+                @media screen and (max-width: 1024px) and (max-height: 600px) {
+                    width: 24px;
+                    height: 24px;
+                }
+                
+                @media screen and (max-width: 1280px) and (max-height: 800px) {
+                    width: 30px;
+                    height: 30px;
+                }
             }
 
             &:hover::before {
@@ -181,6 +442,14 @@
                 width: 24px;
                 position: relative;
                 z-index: 1;
+                
+                @media screen and (max-width: 1024px) and (max-height: 600px) {
+                    width: 16px;
+                }
+                
+                @media screen and (max-width: 1280px) and (max-height: 800px) {
+                    width: 20px;
+                }
             }
         }
     }
@@ -224,26 +493,26 @@
 
 @keyframes moveDown {
     0% {
-        top: 50%;
+        transform: translateY(0);
     }
     50% {
-        top: 40%;
+        transform: translateY(-40px);
     }
     100% {
-        top: 100%;
+        transform: translateY(100px);
     }
 }
 
 @keyframes moveUp {
     0% {
         background: #FFB300;
-        top: 100%;
+        transform: translateY(100px);
     }
     50% {
-        top: 40%;
+        transform: translateY(-40px);
     }
     100% {
-        top: 50%;
+        transform: translateY(0);
         background: #E0E0E0;
     }
 }
@@ -271,8 +540,8 @@
         border-radius: 1rem;
     }
     100% {
-        width: 440px;
-        height: 380px;
+        width: 300px;
+        height: 450px;
         background: #FFFFFF;
         border-radius: 1rem;
     }
@@ -310,6 +579,54 @@
     }
 }
 
+@keyframes materia_small_landscape {
+    0% {
+        background: #E0E0E0;
+    }
+    50% {
+        border-radius: 1rem;
+    }
+    100% {
+        width: 320px;
+        height: 190px;
+        background: #FFFFFF;
+        border-radius: 1rem;
+    }
+}
+
+@keyframes materia_medium_landscape {
+    0% {
+        background: #E0E0E0;
+    }
+    50% {
+        border-radius: 1rem;
+    }
+    100% {
+        width: 380px;
+        height: 240px;
+        background: #FFFFFF;
+        border-radius: 1rem;
+    }
+}
+
+@keyframes materia_mobile {
+    0% {
+        background: #E0E0E0;
+    }
+    50% {
+        border-radius: 1rem;
+    }
+    100% {
+        width: 90%;
+        max-width: 320px;
+        height: auto;
+        min-height: 120px;
+        background: #FFFFFF;
+        border-radius: 10px;
+        padding-bottom: 10px;
+    }
+}
+
 // Media Queries
 @media screen and (min-aspect-ratio: 4/3) {
     .wrapper {
@@ -321,38 +638,115 @@
     }
 }
 
-@media screen and (min-height: 480px) {
+// Media Queries for mobile
+@media screen and (max-width: 767px) {
+    .wrapper {
+        background: #bcdee7 url('../../img/backgroung-info.jpg') no-repeat center center fixed;
+        background-size: cover;
+        overflow: hidden;
+        position: fixed;
+    }
+    
+    .profiles-container {
+        padding: 70px 0 20px 0;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 20px;
+        overflow: hidden;
+        height: 100%;
+    }
+    
     .profile-card {
-        animation: init 0.5s 0.2s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards, 
-                  moveDown 1s 0.8s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards, 
-                  moveUp 1s 1.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, 
-                  materia_portrait 0.5s 2.7s cubic-bezier(0.86, 0, 0.07, 1) forwards;
-
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        width: 85%;
+        max-width: 320px;
+        margin-bottom: 15px;
+        
         header {
-            width: auto;
-            height: auto;
-            padding: 30px 20px;
-            display: block;
-            float: none;
-            border-right: none;
-            margin-top: 0;
-        }
-
-        .profile-bio {
-            width: auto;
-            height: auto;
-            padding: 15px 20px 30px 20px;
-            display: block;
-            float: none;
-            margin-top: 0;
-        }
-
-        .profile-social-links {
             width: 100%;
-            display: block;
+            padding: 15px 15px 5px 15px;
+            margin: 0;
+            text-align: center;
+            border: none;
             float: none;
-            margin-top: 0;
-            padding: 15px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: auto;
+            
+            h1 {
+                color: #FF5722;
+                font-size: 18px;
+                margin-top: 10px;
+            }
+            
+            h2 {
+                font-size: 14px;
+                margin-top: 0;
+                margin-bottom: 5px;
+            }
+            
+            a {
+                margin: 0;
+                
+                img {
+                    width: 70px;
+                    height: 70px;
+                    box-shadow: 0px 0px 0px 4px rgba(0, 0, 0, 0.06);
+                }
+                
+                &::after {
+                    width: 15px;
+                    height: 15px;
+                    border: 3px solid #FFFFFF;
+                }
+            }
+        }
+        
+        .profile-bio {
+            display: block;
+            width: 100%;
+            height: auto;
+            padding: 1px 15px 0 15px;
+            margin: 0;
+            font-size: 12px;
+            text-align: center;
+            
+            p {
+                margin: 3px 0;
+            }
+            
+            .email-link {
+                font-size: 12px;
+                display: inline-block;
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                margin-bottom: 10px;
+            }
+        }
+        
+        .profile-social-links {
+            display: none;
+        }
+    }
+    
+    @keyframes materia_mobile {
+        0% {
+            background: #E0E0E0;
+        }
+        50% {
+            border-radius: 1rem;
+        }
+        100% {
+            width: 85%;
+            max-width: 320px;
+            height: auto;
+            min-height: 180px;
+            background: #FFFFFF;
+            border-radius: 10px;
+            padding-bottom: 0;
+            overflow: hidden;
         }
     }
 } 

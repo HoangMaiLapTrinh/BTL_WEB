@@ -412,11 +412,11 @@
 
 @media (max-width: 768px) {
     .cartPage {
-        padding: 40px 0;
+        padding: 40px 0 0 0;
         
         .container {
             max-width: 100%;
-            padding: 0 10px;
+            padding: 0;
         }
         
         .col8, .col4 {
@@ -439,16 +439,93 @@
         }
 
         .emptyCart {
+            padding: 0;
+            
+            .row {
+                flex-direction: column;
+                margin: 0;
+            }
+            
+            .col8, .col4 {
+                padding: 0;
+                max-width: 100%;
+            }
+            
             .emptyCartContent {
-                padding: 20px;
+                padding: 20px 10px;
+                margin-top: 20px;
+                box-shadow: none;
+                border-radius: 0;
+                background: transparent;
                 
-                .emptyCartIcon img {
-                    width: 200px;
+                .emptyCartIcon {
+                    margin-bottom: 15px;
+                    display: flex;
+                    justify-content: center;
+                    
+                    img {
+                        width: 150px;
+                        height: auto;
+                    }
+                }
+                
+                h2 {
+                    font-size: 22px;
+                    font-weight: bold;
+                    margin: 15px 0;
+                    text-align: center;
+                }
+                
+                .emptyCartText {
+                    font-size: 14px;
+                    line-height: 1.5;
+                    text-align: center;
+                    color: #666;
+                    padding: 0 15px;
+                    
+                    p {
+                        margin-bottom: 10px;
+                    }
+                    
+                    strong {
+                        color: #333;
+                    }
                 }
             }
 
             .cartSummaryEmpty {
                 padding: 15px;
+                border-radius: 0;
+                margin-top: 20px;
+                
+                .summaryItem {
+                    display: flex;
+                    justify-content: space-between;
+                    padding: 8px 0;
+                    font-size: 14px;
+                    
+                    &.total {
+                        font-size: 16px;
+                        font-weight: bold;
+                        border-top: 1px solid #eee;
+                        padding-top: 12px;
+                        margin-top: 5px;
+                    }
+                }
+                
+                .checkoutBtn {
+                    width: 100%;
+                    padding: 12px;
+                    margin-top: 15px;
+                    font-size: 15px;
+                    text-transform: uppercase;
+                    font-weight: bold;
+                    background-color: #ccc;
+                    color: #666;
+                    border-radius: 4px;
+                    border: none;
+                    cursor: not-allowed;
+                }
             }
         }
         
@@ -465,7 +542,7 @@
 
 @media (max-width: 576px) {
     .cartPage {
-        padding: 30px 0;
+        padding: 30px 0 0 0;
         
         .cartItem {
             flex-wrap: wrap;
@@ -513,6 +590,7 @@
         .removeBtn {
             padding: 4px 8px;
             font-size: 12px;
+            margin-top: 100%;
         }
         
         .cartItems h2, .emptyCartContent h2 {
@@ -520,8 +598,28 @@
             margin-bottom: 20px;
         }
         
-        .emptyCart .emptyCartContent .emptyCartIcon img {
-            width: 150px;
+        .emptyCart {
+            .emptyCartContent {
+                padding: 15px 0;
+                margin-top: 30px;
+                
+                .emptyCartIcon img {
+                    width: 120px;
+                }
+                
+                h2 {
+                    font-size: 20px;
+                    margin: 10px 0;
+                }
+                
+                .emptyCartText {
+                    font-size: 13px;
+                    
+                    p {
+                        line-height: 1.4;
+                    }
+                }
+            }
         }
         
         .summaryItem {
