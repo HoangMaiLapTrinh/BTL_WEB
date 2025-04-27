@@ -207,7 +207,7 @@ exports.cancelOrder = async (req, res) => {
 
         // Cập nhật trạng thái đơn hàng thành Cancelled
         order.orderStatus = 'Cancelled';
-        
+
         // Cập nhật lại số lượng sản phẩm trong kho
         for (const item of order.orderItems) {
             const product = await Product.findById(item.product);

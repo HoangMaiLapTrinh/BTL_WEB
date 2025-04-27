@@ -27,6 +27,9 @@ function Header() {
     const mobileSearchRef = useRef(null);
     const hamburgerIconRef = useRef(null);
     
+    // Thêm state cho sticky header
+    const [isHeaderSticky, setIsHeaderSticky] = useState(false);
+    
     // Hàm toggle mobile menu - sử dụng useCallback để tránh tạo hàm mới mỗi lần render
     const toggleMobileMenu = useCallback(() => {
         setShowMobileMenu(prevState => {
@@ -212,271 +215,296 @@ function Header() {
         // Loại bỏ thông báo toast khi nhấp đăng ký
     }, [closeMobileMenu]);
     
+    // Thêm useEffect để xử lý scroll
+    useEffect(() => {
+        const handleScroll = () => {
+            const scrollPosition = window.scrollY;
+            if (scrollPosition > 50) {
+                setIsHeaderSticky(true);
+            } else {
+                setIsHeaderSticky(false);
+            }
+        };
+        
+        // Thêm event listener
+        window.addEventListener('scroll', handleScroll);
+        
+        // Gọi một lần để thiết lập trạng thái ban đầu
+        handleScroll();
+        
+        // Clean up
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
+    
     return (
-        <header className={cx('wrapper')}>
-            <div className={cx('nav')}>
-                {/* Menu desktop */}
-                <div className={cx('nav-left', 'desktop-only')}>
-                    <ul className={cx('main-menu')}>
-                        <li className={cx('nav-item')}>
-                            <Link to="/products" className={cx('nav-link')}>SẢN PHẨM</Link>
-                        </li>
-                        <li className={cx('nav-item', 'dropdown')}>
-                            <span className={cx('nav-link', 'dropdown-toggle')}>THƯƠNG HIỆU</span>
-                            <div className={cx('dropdown-menu')}>
-                                <a className={cx('dropdown-item')} onClick={() => navigateToBrand('Gucci')}>Gucci</a>
-                                <a className={cx('dropdown-item')} onClick={() => navigateToBrand('Louis Vuitton')}>Louis Vuitton</a>
-                                <a className={cx('dropdown-item')} onClick={() => navigateToBrand('Prada')}>Prada</a>
-                                <a className={cx('dropdown-item')} onClick={() => navigateToBrand('Dior')}>Dior</a>
-                                <a className={cx('dropdown-item')} onClick={() => navigateToBrand('Balenciaga')}>Balenciaga</a>
-                                <a className={cx('dropdown-item')} onClick={() => navigateToBrand('Nike')}>Nike</a>
-                                <a className={cx('dropdown-item')} onClick={() => navigateToBrand('Adidas')}>Adidas</a>
-                            </div>
-                        </li>
-                        <li className={cx('nav-item')}>
-                            <a onClick={() => navigateToGender('Nam')} className={cx('nav-link')}>ĐỒ NAM</a>
-                        </li>
-                        <li className={cx('nav-item')}>
-                            <a onClick={() => navigateToGender('Nữ')} className={cx('nav-link')}>ĐỒ NỮ</a>
-                        </li>
-                    </ul>
-                </div>
-
-                {/* Mobile controls - Left */}
-                <div className={cx('mobile-nav-left', 'mobile-only')}>
-                    <div className={cx('mobile-search-icon')} onClick={toggleMobileSearch}>
-                        <i className="fas fa-search"></i>
-                    </div>
-                </div>
-
-                {/* Logo (center for both desktop and mobile) */}
-                <div className={cx('logo')}>
-                    <Link to="/"><img src={logo_rmbg} alt="Logo" className={cx('logo_rmbg')} /></Link>
-                </div>
-
-                {/* Menu desktop */}
-                <div className={cx('nav-right', 'desktop-only')}>
-                    <ul className={cx('main-menu')}>
-                        {/* Icon tìm kiếm */}
-                        <li className={cx('nav-item')}>
-                            <div className={cx('search-container')}>
-                                <span className={cx('nav-link')}>
-                                    <i 
-                                        id="search-icon"
-                                        className="fas fa-search" 
-                                        onClick={toggleSearch}
-                                    ></i>
-                                </span>
-                                {showSearch && (
-                                    <div id="search-box" className={cx('search-box')}>
-                                        <form onSubmit={handleSearchSubmit}>
-                                            <input
-                                                type="text"
-                                                placeholder="Tìm kiếm sản phẩm..."
-                                                value={searchTerm}
-                                                onChange={(e) => setSearchTerm(e.target.value)}
-                                                onKeyDown={handleKeyPress}
-                                                autoFocus
-                                            />
-                                            <button type="submit">
-                                                <i className="fas fa-search"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                )}
-                            </div>
-                        </li>
-                        
-                        <li className={cx('nav-item')}>
-                            <Link to="/info" className={cx('nav-link')}>LIÊN HỆ</Link>
-                        </li>
-
-                        {!user ? (
+        <header className={cx('header')}>
+            <div className={cx('wrapper', { 'sticky': isHeaderSticky })}>
+                <div className={cx('nav')}>
+                    {/* Menu desktop */}
+                    <div className={cx('nav-left', 'desktop-only')}>
+                        <ul className={cx('main-menu')}>
                             <li className={cx('nav-item')}>
-                                <div className={cx('auth-buttons')}>
-                                    <Link to="/login" className={cx('btn-dtl')}>
-                                        <i className="fas fa-sign-in-alt" style={{ marginRight: '5px' }}></i>
-                                        <span className={cx('btn-text')}>ĐĂNG NHẬP</span>
-                                    </Link>
-                                    <Link to="/login?action=register" className={cx('btn-dtl')}>
-                                        <i className="fas fa-user-plus" style={{ marginRight: '5px' }}></i>
-                                        <span>ĐĂNG KÝ</span>
-                                    </Link>
-                                </div>
+                                <Link to="/products" className={cx('nav-link')}>SẢN PHẨM</Link>
                             </li>
-                        ) : (
                             <li className={cx('nav-item', 'dropdown')}>
-                                <span className={cx('nav-link', 'dropdown-toggle')}>
-                                    <i className="fas fa-user-circle" style={{ marginRight: '5px' }}></i>
-                                    {user.email}
-                                </span>
+                                <span className={cx('nav-link', 'dropdown-toggle')}>THƯƠNG HIỆU</span>
                                 <div className={cx('dropdown-menu')}>
-                                    <Link className={cx('dropdown-item')} to="/profile">
-                                        <i className="fas fa-id-card-alt" style={{ marginRight: '5px' }}></i>
-                                        Thông tin tài khoản
-                                    </Link>
-                                    <Link className={cx('dropdown-item')} to="/my-orders">
-                                        <i className="fas fa-shopping-bag" style={{ marginRight: '5px' }}></i>
-                                        Các đơn của tôi
-                                    </Link>
-                                    <Link className={cx('dropdown-item')} to="/change-password">
-                                        <i className="fas fa-key" style={{ marginRight: '5px' }}></i>
-                                        Đổi mật khẩu
-                                    </Link>
-                                    <Link className={cx('dropdown-item')} to="/settings">
-                                        <i className="fas fa-cog" style={{ marginRight: '5px' }}></i>
-                                        Thiết lập
-                                    </Link>
-                                    <button className={cx('dropdown-item')} onClick={handleLogout}>
-                                        <i className="fas fa-sign-out-alt" style={{ marginRight: '5px' }}></i>
-                                        Đăng xuất
-                                    </button>
+                                    <a className={cx('dropdown-item')} onClick={() => navigateToBrand('Gucci')}>Gucci</a>
+                                    <a className={cx('dropdown-item')} onClick={() => navigateToBrand('Louis Vuitton')}>Louis Vuitton</a>
+                                    <a className={cx('dropdown-item')} onClick={() => navigateToBrand('Prada')}>Prada</a>
+                                    <a className={cx('dropdown-item')} onClick={() => navigateToBrand('Dior')}>Dior</a>
+                                    <a className={cx('dropdown-item')} onClick={() => navigateToBrand('Balenciaga')}>Balenciaga</a>
+                                    <a className={cx('dropdown-item')} onClick={() => navigateToBrand('Nike')}>Nike</a>
+                                    <a className={cx('dropdown-item')} onClick={() => navigateToBrand('Adidas')}>Adidas</a>
                                 </div>
                             </li>
-                        )}
-
-                        <li className={cx('nav-item', 'cart-container')}>
-                            <BadgeCart />
-                        </li>
-                    </ul>
-                </div>
-
-                {/* Mobile controls - Right */}
-                <div className={cx('mobile-nav-right', 'mobile-only')}>
-                    <div className={cx('mobile-cart')}>
-                        <BadgeCart />
+                            <li className={cx('nav-item')}>
+                                <a onClick={() => navigateToGender('Nam')} className={cx('nav-link')}>ĐỒ NAM</a>
+                            </li>
+                            <li className={cx('nav-item')}>
+                                <a onClick={() => navigateToGender('Nữ')} className={cx('nav-link')}>ĐỒ NỮ</a>
+                            </li>
+                        </ul>
                     </div>
-                    <button 
-                        type="button"
-                        className={cx('hamburger-icon')} 
-                        ref={hamburgerIconRef}
-                        aria-label={showMobileMenu ? "Đóng menu" : "Mở menu"}
-                    >
-                        <i className={`fas ${showMobileMenu ? 'fa-times' : 'fa-bars'}`}></i>
-                    </button>
-                </div>
-            </div>
 
-            {/* Mobile Search Box */}
-            {showMobileSearch && (
-                <div className={cx('mobile-search-container')} ref={mobileSearchRef}>
-                    <form onSubmit={handleSearchSubmit}>
-                        <input
-                            type="text"
-                            placeholder="Tìm kiếm sản phẩm..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            onKeyDown={handleKeyPress}
-                            autoFocus
-                        />
-                        <button type="submit">
+                    {/* Mobile controls - Left */}
+                    <div className={cx('mobile-nav-left', 'mobile-only')}>
+                        <div className={cx('mobile-search-icon')} onClick={toggleMobileSearch}>
                             <i className="fas fa-search"></i>
+                        </div>
+                    </div>
+
+                    {/* Logo (center for both desktop and mobile) */}
+                    <div className={cx('logo')}>
+                        <Link to="/"><img src={logo_rmbg} alt="Logo" className={cx('logo_rmbg')} /></Link>
+                    </div>
+
+                    {/* Menu desktop */}
+                    <div className={cx('nav-right', 'desktop-only')}>
+                        <ul className={cx('main-menu')}>
+                            {/* Icon tìm kiếm */}
+                            <li className={cx('nav-item')}>
+                                <div className={cx('search-container')}>
+                                    <span className={cx('nav-link')}>
+                                        <i 
+                                            id="search-icon"
+                                            className="fas fa-search" 
+                                            onClick={toggleSearch}
+                                        ></i>
+                                    </span>
+                                    {showSearch && (
+                                        <div id="search-box" className={cx('search-box')}>
+                                            <form onSubmit={handleSearchSubmit}>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Tìm kiếm sản phẩm..."
+                                                    value={searchTerm}
+                                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                                    onKeyDown={handleKeyPress}
+                                                    autoFocus
+                                                />
+                                                <button type="submit">
+                                                    <i className="fas fa-search"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    )}
+                                </div>
+                            </li>
+                            
+                            <li className={cx('nav-item')}>
+                                <Link to="/info" className={cx('nav-link')}>LIÊN HỆ</Link>
+                            </li>
+
+                            {!user ? (
+                                <li className={cx('nav-item')}>
+                                    <div className={cx('auth-buttons')}>
+                                        <Link to="/login" className={cx('btn-dtl')}>
+                                            <i className="fas fa-sign-in-alt" style={{ marginRight: '5px' }}></i>
+                                            <span className={cx('btn-text')}>ĐĂNG NHẬP</span>
+                                        </Link>
+                                        <Link to="/login?action=register" className={cx('btn-dtl')}>
+                                            <i className="fas fa-user-plus" style={{ marginRight: '5px' }}></i>
+                                            <span>ĐĂNG KÝ</span>
+                                        </Link>
+                                    </div>
+                                </li>
+                            ) : (
+                                <li className={cx('nav-item', 'dropdown')}>
+                                    <span className={cx('nav-link', 'dropdown-toggle')}>
+                                        <i className="fas fa-user-circle" style={{ marginRight: '5px' }}></i>
+                                        {user.email}
+                                    </span>
+                                    <div className={cx('dropdown-menu')}>
+                                        <Link className={cx('dropdown-item')} to="/profile">
+                                            <i className="fas fa-id-card-alt" style={{ marginRight: '5px' }}></i>
+                                            Thông tin tài khoản
+                                        </Link>
+                                        <Link className={cx('dropdown-item')} to="/my-orders">
+                                            <i className="fas fa-shopping-bag" style={{ marginRight: '5px' }}></i>
+                                            Các đơn của tôi
+                                        </Link>
+                                        <Link className={cx('dropdown-item')} to="/change-password">
+                                            <i className="fas fa-key" style={{ marginRight: '5px' }}></i>
+                                            Đổi mật khẩu
+                                        </Link>
+                                        <Link className={cx('dropdown-item')} to="/settings">
+                                            <i className="fas fa-cog" style={{ marginRight: '5px' }}></i>
+                                            Thiết lập
+                                        </Link>
+                                        <button className={cx('dropdown-item')} onClick={handleLogout}>
+                                            <i className="fas fa-sign-out-alt" style={{ marginRight: '5px' }}></i>
+                                            Đăng xuất
+                                        </button>
+                                    </div>
+                                </li>
+                            )}
+
+                            <li className={cx('nav-item', 'cart-container')}>
+                                <BadgeCart />
+                            </li>
+                        </ul>
+                    </div>
+
+                    {/* Mobile controls - Right */}
+                    <div className={cx('mobile-nav-right', 'mobile-only')}>
+                        <div className={cx('mobile-cart')}>
+                            <BadgeCart />
+                        </div>
+                        <button 
+                            type="button"
+                            className={cx('hamburger-icon')} 
+                            ref={hamburgerIconRef}
+                            aria-label={showMobileMenu ? "Đóng menu" : "Mở menu"}
+                        >
+                            <i className={`fas ${showMobileMenu ? 'fa-times' : 'fa-bars'}`}></i>
                         </button>
-                        <button type="button" className={cx('close-search')} onClick={toggleMobileSearch}>
+                    </div>
+                </div>
+
+                {/* Mobile Search Box */}
+                {showMobileSearch && (
+                    <div className={cx('mobile-search-container')} ref={mobileSearchRef}>
+                        <form onSubmit={handleSearchSubmit}>
+                            <input
+                                type="text"
+                                placeholder="Tìm kiếm sản phẩm..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onKeyDown={handleKeyPress}
+                                autoFocus
+                            />
+                            <button type="submit">
+                                <i className="fas fa-search"></i>
+                            </button>
+                            <button type="button" className={cx('close-search')} onClick={toggleMobileSearch}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </form>
+                    </div>
+                )}
+
+                {/* Mobile Menu */}
+                <div className={cx('mobile-menu', { show: showMobileMenu })} ref={mobileMenuRef}>
+                    <div className={cx('mobile-menu-header')}>
+                        <button 
+                            className={cx('close-menu-button')} 
+                            onClick={closeMobileMenu}
+                            aria-label="Đóng menu"
+                        >
                             <i className="fas fa-times"></i>
                         </button>
-                    </form>
+                        <h2>Menu</h2>
+                    </div>
+                    <ul className={cx('mobile-menu-list')}>
+                        <li>
+                            <Link to="/products" className={cx('mobile-menu-link')} onClick={closeMobileMenu}>SẢN PHẨM</Link>
+                        </li>
+                        <li className={cx('mobile-dropdown')}>
+                            <div 
+                                className={cx('mobile-dropdown-toggle', { active: activeMobileDropdown === 'brands' })}
+                                onClick={() => toggleMobileDropdown('brands')}
+                            >
+                                <span>THƯƠNG HIỆU</span>
+                                <i className={`fas fa-chevron-down ${activeMobileDropdown === 'brands' ? cx('rotate') : ''}`}></i>
+                            </div>
+                            <ul className={cx('mobile-dropdown-menu', { active: activeMobileDropdown === 'brands' })}>
+                                <li><a onClick={() => navigateToBrand('Gucci')}>Gucci</a></li>
+                                <li><a onClick={() => navigateToBrand('Louis Vuitton')}>Louis Vuitton</a></li>
+                                <li><a onClick={() => navigateToBrand('Prada')}>Prada</a></li>
+                                <li><a onClick={() => navigateToBrand('Dior')}>Dior</a></li>
+                                <li><a onClick={() => navigateToBrand('Balenciaga')}>Balenciaga</a></li>
+                                <li><a onClick={() => navigateToBrand('Nike')}>Nike</a></li>
+                                <li><a onClick={() => navigateToBrand('Adidas')}>Adidas</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a onClick={() => navigateToGender('Nam')} className={cx('mobile-menu-link')}>ĐỒ NAM</a>
+                        </li>
+                        <li>
+                            <a onClick={() => navigateToGender('Nữ')} className={cx('mobile-menu-link')}>ĐỒ NỮ</a>
+                        </li>
+                        <li>
+                            <Link to="/info" className={cx('mobile-menu-link')} onClick={closeMobileMenu}>LIÊN HỆ</Link>
+                        </li>
+                        
+                        {!user ? (
+                            <>
+                                <li>
+                                    <Link to="/login" className={cx('mobile-menu-link')} onClick={handleMobileLogin}>
+                                        <i className="fas fa-sign-in-alt"></i> ĐĂNG NHẬP
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/login?action=register" className={cx('mobile-menu-link')} onClick={handleMobileRegister}>
+                                        <i className="fas fa-user-plus"></i> ĐĂNG KÝ
+                                    </Link>
+                                </li>
+                            </>
+                        ) : (
+                            <>
+                                <li className={cx('mobile-dropdown')}>
+                                    <div 
+                                        className={cx('mobile-dropdown-toggle', { active: activeMobileDropdown === 'account' })}
+                                        onClick={() => toggleMobileDropdown('account')}
+                                    >
+                                        <span><i className="fas fa-user-circle"></i> TÀI KHOẢN</span>
+                                        <i className={`fas fa-chevron-down ${activeMobileDropdown === 'account' ? cx('rotate') : ''}`}></i>
+                                    </div>
+                                    <ul className={cx('mobile-dropdown-menu', { active: activeMobileDropdown === 'account' })}>
+                                        <li>
+                                            <Link to="/profile" onClick={closeMobileMenu}>
+                                                <i className="fas fa-id-card-alt"></i> Thông tin tài khoản
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link to="/my-orders" onClick={closeMobileMenu}>
+                                                <i className="fas fa-shopping-bag"></i> Các đơn của tôi
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link to="/change-password" onClick={closeMobileMenu}>
+                                                <i className="fas fa-key"></i> Đổi mật khẩu
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link to="/settings" onClick={closeMobileMenu}>
+                                                <i className="fas fa-cog"></i> Thiết lập
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <a onClick={handleLogout}>
+                                                <i className="fas fa-sign-out-alt"></i> Đăng xuất
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </>
+                        )}
+                    </ul>
                 </div>
-            )}
-
-            {/* Mobile Menu */}
-            <div className={cx('mobile-menu', { show: showMobileMenu })} ref={mobileMenuRef}>
-                <div className={cx('mobile-menu-header')}>
-                    <button 
-                        className={cx('close-menu-button')} 
-                        onClick={closeMobileMenu}
-                        aria-label="Đóng menu"
-                    >
-                        <i className="fas fa-times"></i>
-                    </button>
-                    <h2>Menu</h2>
-                </div>
-                <ul className={cx('mobile-menu-list')}>
-                    <li>
-                        <Link to="/products" className={cx('mobile-menu-link')} onClick={closeMobileMenu}>SẢN PHẨM</Link>
-                    </li>
-                    <li className={cx('mobile-dropdown')}>
-                        <div 
-                            className={cx('mobile-dropdown-toggle', { active: activeMobileDropdown === 'brands' })}
-                            onClick={() => toggleMobileDropdown('brands')}
-                        >
-                            <span>THƯƠNG HIỆU</span>
-                            <i className={`fas fa-chevron-down ${activeMobileDropdown === 'brands' ? cx('rotate') : ''}`}></i>
-                        </div>
-                        <ul className={cx('mobile-dropdown-menu', { active: activeMobileDropdown === 'brands' })}>
-                            <li><a onClick={() => navigateToBrand('Gucci')}>Gucci</a></li>
-                            <li><a onClick={() => navigateToBrand('Louis Vuitton')}>Louis Vuitton</a></li>
-                            <li><a onClick={() => navigateToBrand('Prada')}>Prada</a></li>
-                            <li><a onClick={() => navigateToBrand('Dior')}>Dior</a></li>
-                            <li><a onClick={() => navigateToBrand('Balenciaga')}>Balenciaga</a></li>
-                            <li><a onClick={() => navigateToBrand('Nike')}>Nike</a></li>
-                            <li><a onClick={() => navigateToBrand('Adidas')}>Adidas</a></li>
-                        </ul>
-                    </li>
-                    <li>
-                        <a onClick={() => navigateToGender('Nam')} className={cx('mobile-menu-link')}>ĐỒ NAM</a>
-                    </li>
-                    <li>
-                        <a onClick={() => navigateToGender('Nữ')} className={cx('mobile-menu-link')}>ĐỒ NỮ</a>
-                    </li>
-                    <li>
-                        <Link to="/info" className={cx('mobile-menu-link')} onClick={closeMobileMenu}>LIÊN HỆ</Link>
-                    </li>
-                    
-                    {!user ? (
-                        <>
-                            <li>
-                                <Link to="/login" className={cx('mobile-menu-link')} onClick={handleMobileLogin}>
-                                    <i className="fas fa-sign-in-alt"></i> ĐĂNG NHẬP
-                                </Link>
-                            </li>
-                            <li>
-                                <Link to="/login?action=register" className={cx('mobile-menu-link')} onClick={handleMobileRegister}>
-                                    <i className="fas fa-user-plus"></i> ĐĂNG KÝ
-                                </Link>
-                            </li>
-                        </>
-                    ) : (
-                        <>
-                            <li className={cx('mobile-dropdown')}>
-                                <div 
-                                    className={cx('mobile-dropdown-toggle', { active: activeMobileDropdown === 'account' })}
-                                    onClick={() => toggleMobileDropdown('account')}
-                                >
-                                    <span><i className="fas fa-user-circle"></i> TÀI KHOẢN</span>
-                                    <i className={`fas fa-chevron-down ${activeMobileDropdown === 'account' ? cx('rotate') : ''}`}></i>
-                                </div>
-                                <ul className={cx('mobile-dropdown-menu', { active: activeMobileDropdown === 'account' })}>
-                                    <li>
-                                        <Link to="/profile" onClick={closeMobileMenu}>
-                                            <i className="fas fa-id-card-alt"></i> Thông tin tài khoản
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link to="/my-orders" onClick={closeMobileMenu}>
-                                            <i className="fas fa-shopping-bag"></i> Các đơn của tôi
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link to="/change-password" onClick={closeMobileMenu}>
-                                            <i className="fas fa-key"></i> Đổi mật khẩu
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link to="/settings" onClick={closeMobileMenu}>
-                                            <i className="fas fa-cog"></i> Thiết lập
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <a onClick={handleLogout}>
-                                            <i className="fas fa-sign-out-alt"></i> Đăng xuất
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                        </>
-                    )}
-                </ul>
             </div>
         </header>
     );
