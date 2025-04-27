@@ -558,4 +558,112 @@
             font-size: 13px;
         }
     }
+}
+
+// Thêm CSS cho modal thông báo lỗi tồn kho
+.stockErrorModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    
+    .modalContent {
+        background-color: #fff;
+        width: 90%;
+        max-width: 500px;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+    }
+    
+    .modalHeader {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        background-color: #f8d7da;
+        border-bottom: 1px solid #f5c6cb;
+        
+        h3 {
+            color: #721c24;
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .closeBtn {
+            background: none;
+            border: none;
+            color: #721c24;
+            font-size: 24px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0;
+        }
+    }
+    
+    .modalBody {
+        padding: 20px;
+        
+        p {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .insufficientList {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+            
+            li {
+                padding: 10px 15px;
+                background-color: #f9f9f9;
+                border-radius: 4px;
+                margin-bottom: 10px;
+                border-left: 3px solid #dc3545;
+                display: flex;
+                flex-direction: column;
+                
+                .productName {
+                    font-weight: 600;
+                    color: #333;
+                    margin-bottom: 5px;
+                }
+                
+                .stockInfo {
+                    color: #dc3545;
+                    font-size: 14px;
+                    font-weight: 500;
+                }
+            }
+        }
+    }
+    
+    .modalFooter {
+        padding: 15px 20px;
+        border-top: 1px solid #eee;
+        text-align: right;
+        
+        .returnCartBtn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            
+            &:hover {
+                background-color: #0056b3;
+            }
+        }
+    }
 } 

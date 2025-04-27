@@ -176,15 +176,87 @@ const Checkout = () => {
             }
         } catch (error) {
             console.error('Lỗi khi tạo đơn hàng:', error);
-            showToast({
-                title: "Lỗi",
-                message: error.response?.data?.message || "Đã xảy ra lỗi khi tạo đơn hàng",
-                type: "error",
-                duration: 3000
-            });
+            
+            // Kiểm tra nếu lỗi là do số lượng tồn kho không đủ
+            if (error.response?.data?.stockCheckResults) {
+                // Hiển thị thông báo chi tiết về sản phẩm còn thiếu
+                const insufficientItems = error.response.data.stockCheckResults.filter(item => item.status === 'error');
+                
+                // Tạo danh sách sản phẩm không đủ số lượng
+                const errorMessages = insufficientItems.map(item => 
+                    `${item.product}: ${item.message}`
+                );
+                
+                // Hiển thị thông báo lỗi với danh sách sản phẩm thiếu
+                showToast({
+                    title: "Số lượng tồn kho không đủ",
+                    message: "Vui lòng quay lại giỏ hàng để điều chỉnh số lượng sản phẩm.",
+                    type: "error",
+                    duration: 5000
+                });
+                
+                // Hiển thị modal thông báo chi tiết
+                showStockErrorModal(insufficientItems);
+            } else {
+                // Hiển thị lỗi mặc định nếu không phải lỗi tồn kho
+                showToast({
+                    title: "Lỗi",
+                    message: error.response?.data?.message || "Đã xảy ra lỗi khi tạo đơn hàng",
+                    type: "error",
+                    duration: 3000
+                });
+            }
         } finally {
             setIsLoading(false);
         }
+    };
+
+    // Hàm hiển thị modal thông báo chi tiết về sản phẩm hết hàng
+    const showStockErrorModal = (insufficientItems) => {
+        // Tạo đối tượng div cho modal
+        const modalContainer = document.createElement('div');
+        modalContainer.className = cx('stockErrorModal');
+        
+        // Tạo nội dung modal
+        modalContainer.innerHTML = `
+            <div class="${cx('modalContent')}">
+                <div class="${cx('modalHeader')}">
+                    <h3>Số lượng tồn kho không đủ</h3>
+                    <button class="${cx('closeBtn')}">×</button>
+                </div>
+                <div class="${cx('modalBody')}">
+                    <p>Các sản phẩm sau đây không còn đủ số lượng trong kho:</p>
+                    <ul class="${cx('insufficientList')}">
+                        ${insufficientItems.map(item => `
+                            <li>
+                                <span class="${cx('productName')}">${item.product}</span>
+                                <span class="${cx('stockInfo')}">Tồn kho: ${item.currentStock} | Bạn đặt: ${item.requestedQuantity}</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                    <p>Vui lòng quay lại giỏ hàng để điều chỉnh số lượng sản phẩm.</p>
+                </div>
+                <div class="${cx('modalFooter')}">
+                    <button class="${cx('returnCartBtn')}">Quay lại giỏ hàng</button>
+                </div>
+            </div>
+        `;
+        
+        // Thêm modal vào body
+        document.body.appendChild(modalContainer);
+        
+        // Xử lý sự kiện đóng modal
+        const closeBtn = modalContainer.querySelector(`.${cx('closeBtn')}`);
+        closeBtn.addEventListener('click', () => {
+            document.body.removeChild(modalContainer);
+        });
+        
+        // Xử lý sự kiện quay lại giỏ hàng
+        const returnCartBtn = modalContainer.querySelector(`.${cx('returnCartBtn')}`);
+        returnCartBtn.addEventListener('click', () => {
+            document.body.removeChild(modalContainer);
+            navigate('/cart');
+        });
     };
 
     // Tính thuế và tổng tiền 

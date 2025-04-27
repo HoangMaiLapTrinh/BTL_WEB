@@ -207,12 +207,22 @@ exports.cancelOrder = async (req, res) => {
 
         // Cập nhật trạng thái đơn hàng thành Cancelled
         order.orderStatus = 'Cancelled';
+        
+        // Cập nhật lại số lượng sản phẩm trong kho
+        for (const item of order.orderItems) {
+            const product = await Product.findById(item.product);
+            if (product) {
+                // Trả lại số lượng sản phẩm vào kho
+                product.stock += item.quantity;
+                await product.save({ validateBeforeSave: false });
+            }
+        }
 
         await order.save();
 
         res.status(200).json({
             success: true,
-            message: 'Đơn hàng đã được hủy thành công'
+            message: 'Đơn hàng đã được hủy thành công và số lượng sản phẩm đã được cập nhật lại trong kho'
         });
     } catch (error) {
         res.status(500).json({
@@ -232,6 +242,19 @@ exports.removeOrder = async (req, res) => {
                 success: false,
                 message: 'Không tìm thấy đơn hàng'
             });
+        }
+        
+        // Nếu đơn hàng không phải đã bị hủy, cập nhật lại số lượng sản phẩm trong kho
+        if (order.orderStatus !== 'Cancelled' && order.orderStatus !== 'Delivered') {
+            // Cập nhật lại số lượng sản phẩm trong kho
+            for (const item of order.orderItems) {
+                const product = await Product.findById(item.product);
+                if (product) {
+                    // Trả lại số lượng sản phẩm vào kho
+                    product.stock += item.quantity;
+                    await product.save({ validateBeforeSave: false });
+                }
+            }
         }
 
         // Xóa hoàn toàn đơn hàng khỏi database
