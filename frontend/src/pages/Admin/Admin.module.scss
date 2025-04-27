@@ -1617,22 +1617,25 @@
             
             .save-btn {
                 background: var(--primary-color);
-                color: white;
-                border: none;
+                color: #007bff;
+                border: 1px solid #007bff;
                 
                 &:hover {
-                    background: var(--primary-color-dark);
+                    background: #007bff;
+                    color: white;
+                    border: 1px solid #007bff;
                 }
             }
             
             .cancel-btn {
                 background: white;
-                border: 1px solid #ddd;
-                color: #555;
+                border: 1px solid rgb(241, 115, 115);
+                color: rgb(241, 115, 115);
                 
                 &:hover {
-                    background: #f9f9f9;
-                    border-color: #ccc;
+                    background: rgb(241, 115, 115);
+                    border-color: rgb(241, 115, 115);
+                    color: white;
                 }
             }
         }

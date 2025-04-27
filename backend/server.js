@@ -11,7 +11,7 @@ app.use(cookieParser());
 
 // Cấu hình CORS
 app.use(cors({
-    origin: ['http://localhost:8080', 'http://localhost:3000'],
+    origin: ['https://btl-web-1.onrender.com','http://localhost:8080', 'http://localhost:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true

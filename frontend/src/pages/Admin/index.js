@@ -1582,6 +1582,111 @@ function Admin() {
                                 )}
                             </div>
                         </div>
+
+                        {/* Modal chi tiết hóa đơn */}
+                        {showInvoiceModal && selectedInvoice && (
+                            <div className={cx('invoice-details-modal')}>
+                                <div className={cx('modal-content')}>
+                                    <div className={cx('modal-header')}>
+                                        <h3>Chi tiết đơn hàng #{selectedInvoice._id.slice(-6)}</h3>
+                                        <button 
+                                            className={cx('close-btn')}
+                                            onClick={() => setShowInvoiceModal(false)}
+                                        >
+                                            <i className="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    
+                                    <div className={cx('modal-body')}>
+                                        <div className={cx('customer-info')}>
+                                            <h4>Thông tin khách hàng</h4>
+                                            <p><strong>Họ tên:</strong> {selectedInvoice.shippingInfo?.fullName}</p>
+                                            <p><strong>Email:</strong> {selectedInvoice.user?.email}</p>
+                                            <p><strong>Điện thoại:</strong> {selectedInvoice.shippingInfo?.phoneNo}</p>
+                                            <p><strong>Địa chỉ:</strong> {selectedInvoice.shippingInfo?.address}, {selectedInvoice.shippingInfo?.city}</p>
+                                            <p><strong>Phương thức thanh toán:</strong> {selectedInvoice.paymentMethod === "Banking" ? "Chuyển khoản ngân hàng" : "Thanh toán khi nhận hàng (COD)"}</p>
+                                        </div>
+                                        
+                                        <div className={cx('order-details')}>
+                                            <h4>Chi tiết sản phẩm</h4>
+                                            <table className={cx('order-items-table')}>
+                                                <thead>
+                                                    <tr>
+                                                        <th>Sản phẩm</th>
+                                                        <th>Giá</th>
+                                                        <th>Số lượng</th>
+                                                        <th>Thành tiền</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {selectedInvoice.orderItems.map((item, index) => (
+                                                        <tr key={index}>
+                                                            <td>
+                                                                <div className={cx('product-info')}>
+                                                                    <img 
+                                                                        src={item.images?.[0]?.url || item.image || 'https://via.placeholder.com/50'} 
+                                                                        alt={item.name} 
+                                                                    />
+                                                                    <span>{item.name}</span>
+                                                                </div>
+                                                            </td>
+                                                            <td>{formatCurrency(item.price)}</td>
+                                                            <td>{item.quantity}</td>
+                                                            <td>{formatCurrency(item.price * item.quantity)}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                            
+                                            <div className={cx('order-summary')}>
+                                                <div className={cx('summary-row')}>
+                                                    <span>Tổng tiền hàng:</span>
+                                                    <span>{formatCurrency(selectedInvoice.itemsPrice)}</span>
+                                                </div>
+                                                <div className={cx('summary-row')}>
+                                                    <span>Phí giao hàng:</span>
+                                                    <span>{formatCurrency(selectedInvoice.shippingPrice)}</span>
+                                                </div>
+                                                <div className={cx('summary-row')}>
+                                                    <span>Thuế:</span>
+                                                    <span>{formatCurrency(selectedInvoice.taxPrice)}</span>
+                                                </div>
+                                                <div className={`${cx('summary-row')} ${cx('total')}`}>
+                                                    <span>Tổng thanh toán:</span>
+                                                    <span>{formatCurrency(selectedInvoice.totalPrice)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className={cx('modal-footer')}>
+                                        {selectedInvoice && selectedInvoice.orderStatus !== 'Delivered' && selectedInvoice.orderStatus !== 'Cancelled' && (
+                                            <button 
+                                                className={cx('cancel-order-btn')}
+                                                onClick={() => handleCancelOrder(selectedInvoice._id)}
+                                            >
+                                                Hủy đơn hàng
+                                            </button>
+                                        )}
+                                        <button 
+                                            className={cx('delete-order-btn')}
+                                            onClick={() => {
+                                                handleRemoveOrder(selectedInvoice._id);
+                                                setShowInvoiceModal(false);
+                                            }}
+                                        >
+                                            Xóa đơn hàng
+                                        </button>
+                                        <button 
+                                            className={cx('close-modal-btn')}
+                                            onClick={() => setShowInvoiceModal(false)}
+                                        >
+                                            Đóng
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 );
             case 'invoices':
@@ -1789,7 +1894,7 @@ function Admin() {
                                                             <td>
                                                                 <div className={cx('product-info')}>
                                                                     <img 
-                                                                        src={item.images?.[0]?.url || 'https://via.placeholder.com/50'} 
+                                                                        src={item.images?.[0]?.url || item.image || 'https://via.placeholder.com/50'} 
                                                                         alt={item.name} 
                                                                     />
                                                                     <span>{item.name}</span>
@@ -2054,7 +2159,7 @@ function Admin() {
                                             className={cx('save-btn')}
                                             onClick={handleSaveUser}
                                         >
-                                            {selectedUser ? "Cập nhật" : "Tạo mới"}
+                                            {selectedUser ? "Cập nhật" : "Lưu thông tin"}
                                         </button>
                                         <button 
                                             className={cx('cancel-btn')}
