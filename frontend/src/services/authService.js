@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const API_URL = 'http://localhost:5000/api';
+export const API_URL = 'https://btl-web-avdc.onrender.com/api';
 
 // Cấu hình axios mặc định
 axios.defaults.withCredentials = true;
