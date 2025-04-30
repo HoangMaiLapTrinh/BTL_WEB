@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const API_URL = 'https://backend-l5ws.onrender.com/api';
+export const API_URL = 'https://backend-ezhu.onrender.com/api';
 
 // Cấu hình axios mặc định
 axios.defaults.withCredentials = true;
