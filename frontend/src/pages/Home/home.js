@@ -41,7 +41,7 @@ export const useSlider = () => {
             buttonText: 'Mua ngay'
         },
         {
-            image: '/img/banner/banner-gucci.jpg',
+            image: '/img/banner/banner_gucci.jpg',
             title: 'Thời trang Gucci',
             description: 'Phong cách và đẳng cấp',
             buttonText: 'Xem ngay'
