@@ -1,16 +1,25 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import * as styles from './OrderConfirmation.module.scss';
 import classNames from 'classnames/bind';
+import axios from 'axios';
+import { API_URL } from '../../services/authService.js';
+import Toast, { showToast } from '../../components/Toast/index.js';
 
 const cx = classNames.bind(styles);
 
 const OrderConfirmation = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [sending, setSending] = useState(false);
   
   // Lấy thông tin đơn hàng từ state hoặc redirect về trang chủ nếu không có
   const { orderDetails, success } = location.state || {};
+  
+  // Đảm bảo Toast container được tạo
+  useEffect(() => {
+    // Component Toast sẽ tạo container
+  }, []);
   
   if (!success || !orderDetails) {
     // Nếu không có thông tin đơn hàng, chuyển hướng về trang chủ
@@ -27,8 +36,67 @@ const OrderConfirmation = () => {
   const shippingPrice = orderDetails.shippingPrice || 0;
   const totalPrice = orderDetails.totalPrice;
   
+  // Hàm gửi thông tin đơn hàng qua email
+  const sendOrderConfirmationEmail = async () => {
+    setSending(true);
+    
+    try {
+      const token = localStorage.getItem('token');
+      
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        withCredentials: true
+      };
+      
+      // Hiển thị toast đang gửi
+      showToast({
+        title: "Đang xử lý",
+        message: "Đang gửi thông tin đơn hàng qua email...",
+        type: "info",
+        duration: 3000
+      });
+      
+      // Gọi API để gửi email xác nhận đơn hàng
+      const { data } = await axios.post(
+        `${API_URL}/orders/send-confirmation-email/${orderDetails._id}`,
+        {},
+        config
+      );
+      
+      if (data.success) {
+        showToast({
+          title: "Thành công",
+          message: "Đã gửi email xác nhận đơn hàng thành công!",
+          type: "success",
+          duration: 5000
+        });
+      } else {
+        showToast({
+          title: "Thất bại",
+          message: "Không thể gửi email. Vui lòng thử lại sau!",
+          type: "error",
+          duration: 5000
+        });
+      }
+    } catch (error) {
+      console.error('Lỗi khi gửi email:', error);
+      showToast({
+        title: "Lỗi",
+        message: error.response?.data?.message || "Không thể gửi email. Vui lòng thử lại sau!",
+        type: "error",
+        duration: 5000
+      });
+    } finally {
+      setSending(false);
+    }
+  };
+  
   return (
     <div className={cx('orderConfirmationPage')}>
+      <Toast />
       <div className={cx('container')}>
         <div className={cx('confirmationBox')}>
           <div className={cx('header')}>
@@ -117,6 +185,13 @@ const OrderConfirmation = () => {
               onClick={() => navigate('/')}
             >
               Tiếp tục mua sắm
+            </button>
+            <button 
+              className={cx('sendEmailBtn')}
+              onClick={sendOrderConfirmationEmail}
+              disabled={sending}
+            >
+              {sending ? 'Đang gửi...' : 'Gửi đơn hàng qua email'}
             </button>
           </div>
         </div>
