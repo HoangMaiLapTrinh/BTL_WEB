@@ -1,7 +1,7 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const User = require('../models/User');
-const nodemailer = require('nodemailer');
+const { sendOrderConfirmationEmail } = require('../services/emailService');
 
 // Tạo đơn hàng mới
 exports.newOrder = async (req, res) => {
@@ -27,6 +27,19 @@ exports.newOrder = async (req, res) => {
             paidAt: Date.now(),
             user: req.user._id
         });
+
+        // Lấy thông tin email của người dùng
+        const user = await User.findById(req.user._id);
+        
+        // Gửi email xác nhận đơn hàng nếu có email
+        if (user && user.email) {
+            try {
+                await sendOrderConfirmationEmail(order, user.email);
+            } catch (emailError) {
+                console.error('Lỗi khi gửi email xác nhận:', emailError);
+                // Không ảnh hưởng đến quy trình tạo đơn hàng nếu gửi email thất bại
+            }
+        }
 
         res.status(201).json({
             success: true,
@@ -141,6 +154,58 @@ exports.updateOrder = async (req, res) => {
         res.status(200).json({
             success: true
         });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+// Gửi lại email xác nhận đơn hàng
+exports.resendOrderConfirmationEmail = async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+        
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'Không tìm thấy đơn hàng'
+            });
+        }
+        
+        // Kiểm tra quyền truy cập: chỉ admin hoặc chính người đặt hàng mới có thể gửi lại email
+        if (req.user.role !== 'admin' && order.user.toString() !== req.user._id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: 'Bạn không có quyền thực hiện thao tác này'
+            });
+        }
+        
+        // Lấy thông tin email của người dùng
+        const user = await User.findById(order.user);
+        
+        if (!user || !user.email) {
+            return res.status(400).json({
+                success: false,
+                message: 'Không thể tìm thấy email của người dùng'
+            });
+        }
+        
+        // Gửi email xác nhận
+        const emailSent = await sendOrderConfirmationEmail(order, user.email);
+        
+        if (emailSent) {
+            res.status(200).json({
+                success: true,
+                message: 'Email xác nhận đơn hàng đã được gửi thành công'
+            });
+        } else {
+            res.status(500).json({
+                success: false,
+                message: 'Không thể gửi email xác nhận'
+            });
+        }
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -270,140 +335,6 @@ exports.removeOrder = async (req, res) => {
         res.status(500).json({
             success: false,
             message: error.message
-        });
-    }
-};
-
-// Gửi email xác nhận đơn hàng
-exports.sendOrderConfirmationEmail = async (req, res) => {
-    try {
-        const order = await Order.findById(req.params.id);
-
-        if (!order) {
-            return res.status(404).json({
-                success: false,
-                message: 'Không tìm thấy đơn hàng'
-            });
-        }
-
-        // Kiểm tra quyền: chỉ người dùng đặt hàng hoặc admin mới có thể gửi
-        if (req.user.role !== 'admin' && order.user.toString() !== req.user._id.toString()) {
-            return res.status(403).json({
-                success: false,
-                message: 'Bạn không có quyền gửi xác nhận đơn hàng này'
-            });
-        }
-
-        // Lấy thông tin người dùng để gửi email
-        const user = await User.findById(order.user);
-        
-        if (!user || !user.email) {
-            return res.status(400).json({
-                success: false,
-                message: 'Không tìm thấy email người dùng'
-            });
-        }
-        
-        // Cấu hình transporter cho nodemailer
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASSWORD
-            }
-        });
-        
-        // Format thông tin đơn hàng
-        const formattedItems = order.orderItems.map(item => {
-            return `
-                <tr>
-                    <td style="padding: 10px; border-bottom: 1px solid #eee;"><img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; border-radius: 5px;"></td>
-                    <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.name}</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.quantity}</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.price.toLocaleString('vi-VN')} VND</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #eee;">${(item.price * item.quantity).toLocaleString('vi-VN')} VND</td>
-                </tr>
-            `;
-        }).join('');
-        
-        // Nội dung email
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: user.email,
-            subject: `Xác nhận đơn hàng #${order._id}`,
-            html: `
-                <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 5px;">
-                    <div style="text-align: center; margin-bottom: 30px;">
-                        <h2 style="color: #333;">✅ Đơn hàng của bạn đã được xác nhận!</h2>
-                        <p style="color: #666;">Cảm ơn bạn đã đặt hàng. Đơn hàng của bạn đang được xử lý.</p>
-                        <p style="font-size: 16px;">Mã đơn hàng: <strong style="color: #007bff;">${order._id}</strong></p>
-                        <p style="color: #666;">Ngày đặt hàng: ${new Date(order.createdAt).toLocaleDateString('vi-VN')}</p>
-                    </div>
-                    
-                    <div style="margin-bottom: 30px;">
-                        <h3 style="color: #333; padding-bottom: 10px; border-bottom: 1px solid #eee;">Thông tin giao hàng</h3>
-                        <p><strong>Người nhận:</strong> ${order.shippingInfo.fullName}</p>
-                        <p><strong>Địa chỉ:</strong> ${order.shippingInfo.address}, ${order.shippingInfo.city}</p>
-                        <p><strong>Số điện thoại:</strong> ${order.shippingInfo.phoneNo}</p>
-                    </div>
-                    
-                    <div style="margin-bottom: 30px;">
-                        <h3 style="color: #333; padding-bottom: 10px; border-bottom: 1px solid #eee;">Sản phẩm đã đặt</h3>
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <thead>
-                                <tr>
-                                    <th style="text-align: left; padding: 10px; border-bottom: 2px solid #eee;">Hình ảnh</th>
-                                    <th style="text-align: left; padding: 10px; border-bottom: 2px solid #eee;">Sản phẩm</th>
-                                    <th style="text-align: left; padding: 10px; border-bottom: 2px solid #eee;">Số lượng</th>
-                                    <th style="text-align: left; padding: 10px; border-bottom: 2px solid #eee;">Đơn giá</th>
-                                    <th style="text-align: left; padding: 10px; border-bottom: 2px solid #eee;">Tổng</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${formattedItems}
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div style="background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 30px;">
-                        <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #ddd;">
-                            <span>Tạm tính:</span>
-                            <span>${order.itemsPrice.toLocaleString('vi-VN')} VND</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #ddd;">
-                            <span>Thuế:</span>
-                            <span>${order.taxPrice.toLocaleString('vi-VN')} VND</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #ddd;">
-                            <span>Phí vận chuyển:</span>
-                            <span>${order.shippingPrice === 0 ? 'Miễn phí' : order.shippingPrice.toLocaleString('vi-VN') + ' VND'}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 15px 0; margin-top: 10px; border-top: 1px solid #ddd; font-weight: bold; font-size: 18px;">
-                            <span>Tổng cộng:</span>
-                            <span>${order.totalPrice.toLocaleString('vi-VN')} VND</span>
-                        </div>
-                    </div>
-                    
-                    <div style="text-align: center; margin-top: 30px; color: #666;">
-                        <p>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi qua email hỗ trợ.</p>
-                        <p>© ${new Date().getFullYear()} Shop. Tất cả các quyền được bảo lưu.</p>
-                    </div>
-                </div>
-            `
-        };
-        
-        // Gửi email
-        await transporter.sendMail(mailOptions);
-        
-        res.status(200).json({
-            success: true,
-            message: 'Đã gửi email xác nhận đơn hàng thành công'
-        });
-    } catch (error) {
-        console.error('Lỗi khi gửi email:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Đã xảy ra lỗi khi gửi email xác nhận'
         });
     }
 }; 
