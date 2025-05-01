@@ -191,6 +191,14 @@ exports.resendOrderConfirmationEmail = async (req, res) => {
                 message: 'Không thể tìm thấy email của người dùng'
             });
         }
+
+        // Kiểm tra xem các biến môi trường cần thiết đã được cấu hình chưa
+        if (!process.env.EMAIL) {
+            return res.status(500).json({
+                success: false,
+                message: 'Chức năng gửi email chưa được cấu hình. Vui lòng liên hệ admin.'
+            });
+        }
         
         // Gửi email xác nhận
         const emailSent = await sendOrderConfirmationEmail(order, user.email);
@@ -203,13 +211,14 @@ exports.resendOrderConfirmationEmail = async (req, res) => {
         } else {
             res.status(500).json({
                 success: false,
-                message: 'Không thể gửi email xác nhận'
+                message: 'Không thể gửi email xác nhận. Vui lòng kiểm tra cấu hình email hoặc thử lại sau.'
             });
         }
     } catch (error) {
+        console.error('Lỗi resendOrderConfirmationEmail:', error);
         res.status(500).json({
             success: false,
-            message: error.message
+            message: error.message || 'Có lỗi xảy ra khi gửi email xác nhận'
         });
     }
 };

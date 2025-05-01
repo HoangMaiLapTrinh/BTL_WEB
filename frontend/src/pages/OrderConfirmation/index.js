@@ -11,6 +11,7 @@ const OrderConfirmation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   
   // Lấy thông tin đơn hàng từ state hoặc redirect về trang chủ nếu không có
   const { orderDetails, success } = location.state || {};
@@ -34,7 +35,10 @@ const OrderConfirmation = () => {
   const handleSendEmailConfirmation = async () => {
     try {
       setIsLoading(true);
-      await resendOrderConfirmationEmail(orderDetails._id);
+      setErrorMessage('');
+      
+      const response = await resendOrderConfirmationEmail(orderDetails._id);
+      
       showToast({
         title: "Thành công!",
         message: "Email xác nhận đơn hàng đã được gửi thành công.",
@@ -42,11 +46,29 @@ const OrderConfirmation = () => {
         duration: 3000
       });
     } catch (error) {
+      let errorMsg = "Không thể gửi email xác nhận.";
+      
+      if (error.response) {
+        // Lỗi từ server
+        errorMsg = error.response.data.message || errorMsg;
+        console.error('Lỗi gửi email:', error.response.data);
+      } else if (error.request) {
+        // Lỗi không nhận được phản hồi từ server
+        errorMsg = "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.";
+        console.error('Lỗi kết nối:', error.request);
+      } else {
+        // Lỗi khác
+        errorMsg = error.message || errorMsg;
+        console.error('Lỗi gửi email:', error.message);
+      }
+      
+      setErrorMessage(errorMsg);
+      
       showToast({
         title: "Lỗi!",
-        message: error.message || "Không thể gửi email xác nhận.",
+        message: errorMsg,
         type: "error",
-        duration: 3000
+        duration: 5000
       });
     } finally {
       setIsLoading(false);
@@ -152,6 +174,13 @@ const OrderConfirmation = () => {
               {isLoading ? 'Đang gửi...' : 'Gửi xác nhận qua Gmail'}
             </button>
           </div>
+          
+          {errorMessage && (
+            <div className={cx('errorMessage')}>
+              <i className="fas fa-exclamation-circle"></i>
+              <span>{errorMessage}</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

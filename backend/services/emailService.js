@@ -4,7 +4,17 @@ const OAuth2 = google.auth.OAuth2;
 
 // Cấu hình OAuth2
 const createTransporter = async () => {
+  console.log('Đang tạo transporter...');
+  
   try {
+    // Kiểm tra các biến môi trường
+    if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET || !process.env.REFRESH_TOKEN || !process.env.EMAIL) {
+      console.log('Thiếu biến môi trường OAuth2, chuyển sang sử dụng phương thức dự phòng');
+      throw new Error('Missing OAuth2 environment variables');
+    }
+    
+    console.log('Đang cấu hình OAuth2 với email:', process.env.EMAIL);
+
     const oauth2Client = new OAuth2(
       process.env.CLIENT_ID,
       process.env.CLIENT_SECRET,
@@ -15,16 +25,19 @@ const createTransporter = async () => {
       refresh_token: process.env.REFRESH_TOKEN
     });
 
+    console.log('Đang lấy access token...');
     const accessToken = await new Promise((resolve, reject) => {
       oauth2Client.getAccessToken((err, token) => {
         if (err) {
-          console.log("**** Error getting access token: ", err);
+          console.log("Lỗi khi lấy access token:", err);
           reject(err);
         }
+        console.log('Đã nhận được access token');
         resolve(token);
       });
     });
 
+    console.log('Tạo transporter với OAuth2...');
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -34,28 +47,61 @@ const createTransporter = async () => {
         clientId: process.env.CLIENT_ID,
         clientSecret: process.env.CLIENT_SECRET,
         refreshToken: process.env.REFRESH_TOKEN
-      }
+      },
+      debug: true // Bật chế độ debug
     });
 
+    // Kiểm tra kết nối
+    await transporter.verify();
+    console.log('Đã xác minh kết nối với email server');
+    
     return transporter;
   } catch (error) {
-    console.log("Error creating transporter: ", error);
-    // Sử dụng transporter dự phòng nếu không thể tạo OAuth2
-    return nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: process.env.SMTP_PORT || 587,
-      secure: false, // true for 465, false for other ports
-      auth: {
-        user: process.env.EMAIL,
-        pass: process.env.EMAIL_PASSWORD
+    console.log("Lỗi khi tạo OAuth2 transporter:", error);
+    console.log("Chuyển sang sử dụng phương thức xác thực thông thường...");
+    
+    try {
+      if (!process.env.EMAIL || !process.env.EMAIL_PASSWORD) {
+        console.log('Không tìm thấy thông tin email hoặc mật khẩu ứng dụng');
+        throw new Error('Email credentials not found');
       }
-    });
+      
+      console.log('Tạo transporter với App Password cho email:', process.env.EMAIL);
+      
+      // Sử dụng transporter dự phòng
+      const backupTransporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: process.env.SMTP_PORT || 587,
+        secure: false, // true for 465, false for other ports
+        auth: {
+          user: process.env.EMAIL,
+          pass: process.env.EMAIL_PASSWORD
+        },
+        debug: true // Bật chế độ debug
+      });
+      
+      // Kiểm tra kết nối
+      await backupTransporter.verify();
+      console.log('Đã xác minh kết nối với email server (phương thức dự phòng)');
+      
+      return backupTransporter;
+    } catch (backupError) {
+      console.error('Lỗi khi tạo transporter dự phòng:', backupError);
+      throw new Error('Không thể thiết lập kết nối email: ' + backupError.message);
+    }
   }
 };
 
 // Gửi email xác nhận đơn hàng
 exports.sendOrderConfirmationEmail = async (orderDetails, userEmail) => {
   try {
+    console.log(`Chuẩn bị gửi email xác nhận đơn hàng đến: ${userEmail}`);
+    
+    if (!userEmail) {
+      console.error('Không thể gửi email: Email người nhận không hợp lệ');
+      return false;
+    }
+    
     const transporter = await createTransporter();
     
     // Tạo bảng mua hàng
@@ -73,6 +119,8 @@ exports.sendOrderConfirmationEmail = async (orderDetails, userEmail) => {
         </tr>
       `;
     });
+    
+    console.log('Đang chuẩn bị nội dung email...');
     
     // Gửi email
     const mailOptions = {
@@ -153,11 +201,58 @@ exports.sendOrderConfirmationEmail = async (orderDetails, userEmail) => {
       `
     };
 
+    console.log('Đang gửi email...');
     const result = await transporter.sendMail(mailOptions);
-    console.log('Email sent: ' + result.response);
+    console.log('Email đã được gửi:', result.response);
     return true;
   } catch (error) {
-    console.error('Error sending email: ', error);
-    return false;
+    console.error('Lỗi khi gửi email:', error);
+    
+    // Thử phương pháp gửi mail thay thế nếu cần
+    try {
+      console.log('Thử gửi lại với nội dung đơn giản hơn...');
+      
+      // Tạo transporter mới cho lần gửi thứ hai
+      const backupTransporter = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        auth: {
+          user: process.env.EMAIL,
+          pass: process.env.EMAIL_PASSWORD
+        }
+      });
+      
+      const simpleMail = {
+        from: `"Shop" <${process.env.EMAIL}>`,
+        to: userEmail,
+        subject: `Xác nhận đơn hàng #${orderDetails._id}`,
+        text: `
+          Xin chào ${orderDetails.shippingInfo.fullName},
+          
+          Cảm ơn bạn đã đặt hàng. Đơn hàng #${orderDetails._id} của bạn đã được xác nhận.
+          
+          Tổng giá trị đơn hàng: ${orderDetails.totalPrice.toLocaleString('vi-VN')} VND
+          
+          Cảm ơn bạn đã mua sắm cùng chúng tôi!
+        `,
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px;">
+            <h2>Xác nhận đơn hàng #${orderDetails._id}</h2>
+            <p>Xin chào <b>${orderDetails.shippingInfo.fullName}</b>,</p>
+            <p>Cảm ơn bạn đã đặt hàng. Đơn hàng của bạn đã được xác nhận và đang được xử lý.</p>
+            <p><b>Tổng giá trị đơn hàng:</b> ${orderDetails.totalPrice.toLocaleString('vi-VN')} VND</p>
+            <p>Cảm ơn bạn đã mua sắm cùng chúng tôi!</p>
+          </div>
+        `
+      };
+      
+      const backupResult = await backupTransporter.sendMail(simpleMail);
+      console.log('Email đơn giản đã được gửi:', backupResult.response);
+      return true;
+    } catch (backupError) {
+      console.error('Cả hai phương pháp gửi email đều thất bại:', backupError);
+      return false;
+    }
   }
 }; 
