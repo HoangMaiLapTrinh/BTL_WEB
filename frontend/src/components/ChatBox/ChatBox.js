@@ -10,7 +10,7 @@ import { showToast } from '../Toast/index.js';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const cx = classNames.bind(styles);
-const API_URL = (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_URL) || 'http://localhost:5000/api';
+const API_URL = (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_URL) || 'https://backend-ezhu.onrender.com/api';
 
 const ChatBox = () => {
     const [showChat, setShowChat] = useState(false);
