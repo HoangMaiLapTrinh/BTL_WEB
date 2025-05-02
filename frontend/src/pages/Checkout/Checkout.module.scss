@@ -226,6 +226,15 @@
                     margin-top: 10px;
                     padding-top: 15px;
                 }
+                
+                &.discount {
+                    color: #28a745;
+                    font-weight: 500;
+                    
+                    span {
+                        color: #28a745;
+                    }
+                }
             }
         }
     }

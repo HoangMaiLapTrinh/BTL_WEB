@@ -260,9 +260,10 @@ const Checkout = () => {
     };
 
     // Tính thuế và tổng tiền 
-    const taxAmount = Math.round(cartTotal * 0.1); // 10% thuế
+    const taxAmount = 0; // Đã bỏ thuế
     const shippingAmount = 0; // Miễn phí vận chuyển
-    const totalAmount = cartTotal + taxAmount + shippingAmount;
+    const discountAmount = parseInt(localStorage.getItem('discountAmount')) || 0;
+    const totalAmount = cartTotal - discountAmount + shippingAmount;
 
     return (
         <div className={cx('checkoutPage')}>
@@ -408,9 +409,14 @@ const Checkout = () => {
                                 <div className={cx('orderTotal')}>
                                     <ul>
                                         <li>Tạm tính <span>{cartTotal.toLocaleString('vi-VN')} VND</span></li>
-                                        <li>Thuế (10%) <span>{taxAmount.toLocaleString('vi-VN')} VND</span></li>
+                                        {parseInt(localStorage.getItem('discountAmount')) > 0 && (
+                                            <li className={cx('discount')}>
+                                                Giảm giá ({localStorage.getItem('discountName') || 'Mã giảm giá'}) 
+                                                <span>-{parseInt(localStorage.getItem('discountAmount')).toLocaleString('vi-VN')} VND</span>
+                                            </li>
+                                        )}
                                         <li>Phí vận chuyển <span>Miễn phí</span></li>
-                                        <li className={cx('totalAmount')}>Tổng cộng <span>{totalAmount.toLocaleString('vi-VN')} VND</span></li>
+                                        <li className={cx('totalAmount')}>Tổng cộng <span>{(parseInt(localStorage.getItem('discountAmount')) > 0 ? cartTotal - parseInt(localStorage.getItem('discountAmount')) : cartTotal).toLocaleString('vi-VN')} VND</span></li>
                                     </ul>
                                 </div>
                             </div>

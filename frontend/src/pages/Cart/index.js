@@ -14,6 +14,9 @@ function Cart() {
     const [cartItems, setCartItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [couponCode, setCouponCode] = useState('');
+    const [appliedDiscount, setAppliedDiscount] = useState(null);
+    const [isApplying, setIsApplying] = useState(false);
     const navigate = useNavigate();
 
     // Kiểm tra đăng nhập và lấy dữ liệu giỏ hàng
@@ -48,6 +51,18 @@ function Cart() {
         };
 
         checkAuth();
+        
+        // Khôi phục thông tin giảm giá từ localStorage nếu có
+        const storedDiscount = localStorage.getItem('discount');
+        if (storedDiscount) {
+            try {
+                const discountObj = JSON.parse(storedDiscount);
+                setAppliedDiscount(discountObj);
+                setCouponCode(localStorage.getItem('discountCode') || '');
+            } catch (error) {
+                console.error('Lỗi khi khôi phục thông tin giảm giá:', error);
+            }
+        }
     }, []);
 
     // Lấy dữ liệu giỏ hàng từ API
@@ -214,8 +229,107 @@ function Cart() {
         return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
     }
 
+    // Tính giá trị giảm giá
+    const calculateDiscount = () => {
+        if (!appliedDiscount) return 0;
+        
+        const subtotal = calculateTotal();
+        
+        if (appliedDiscount.type === 'percent') {
+            return (subtotal * appliedDiscount.value) / 100;
+        } else if (appliedDiscount.type === 'fixed') {
+            return appliedDiscount.value;
+        } else {
+            return 0;
+        }
+    };
+    
+    // Tính tổng thanh toán sau khi giảm giá
+    const calculateFinalTotal = () => {
+        const subtotal = calculateTotal();
+        const discount = calculateDiscount();
+        return subtotal - discount;
+    };
+
+    // Xử lý áp dụng mã giảm giá
+    const handleApplyCoupon = () => {
+        if (!couponCode.trim()) {
+            showToast({
+                title: "Lỗi",
+                message: "Vui lòng nhập mã giảm giá",
+                type: "error",
+                duration: 2000
+            });
+            return;
+        }
+        
+        setIsApplying(true);
+        
+        // Giả lập gọi API kiểm tra mã giảm giá
+        setTimeout(() => {
+            // Mô phỏng các mã giảm giá
+            const coupons = {
+                'SALE10': { code: 'SALE10', name: 'Giảm 10%', type: 'percent', value: 10 },
+                'SALE20': { code: 'SALE20', name: 'Giảm 20%', type: 'percent', value: 20 },
+                'GIẢM50K': { code: 'GIẢM50K', name: 'Giảm 50.000đ', type: 'fixed', value: 50000 },
+                'FREESHIP': { code: 'FREESHIP', name: 'Miễn phí vận chuyển', type: 'freeship', value: 0 }
+            };
+            
+            const discount = coupons[couponCode.toUpperCase()];
+            
+            if (discount) {
+                setAppliedDiscount(discount);
+                showToast({
+                    title: "Thành công",
+                    message: `Đã áp dụng mã giảm giá ${discount.name}`,
+                    type: "success",
+                    duration: 3000
+                });
+            } else {
+                setAppliedDiscount(null);
+                showToast({
+                    title: "Lỗi",
+                    message: "Mã giảm giá không hợp lệ hoặc đã hết hạn",
+                    type: "error",
+                    duration: 3000
+                });
+            }
+            
+            setIsApplying(false);
+        }, 1000);
+    };
+
+    // Xử lý xóa mã giảm giá
+    const handleRemoveCoupon = () => {
+        setAppliedDiscount(null);
+        setCouponCode('');
+        showToast({
+            title: "Đã xóa",
+            message: "Đã xóa mã giảm giá",
+            type: "info",
+            duration: 2000
+        });
+    };
+
     // Chuyển đến trang thanh toán
     function handleCheckout() {
+        // Lưu thông tin giảm giá vào localStorage nếu có
+        if (appliedDiscount) {
+            localStorage.setItem('discount', JSON.stringify(appliedDiscount));
+            localStorage.setItem('discountAmount', calculateDiscount().toString());
+            localStorage.setItem('discountType', appliedDiscount.type);
+            localStorage.setItem('discountValue', appliedDiscount.value.toString());
+            localStorage.setItem('discountName', appliedDiscount.name);
+            localStorage.setItem('discountCode', appliedDiscount.code);
+        } else {
+            localStorage.removeItem('discount');
+            localStorage.removeItem('discountAmount');
+            localStorage.removeItem('discountType');
+            localStorage.removeItem('discountValue');
+            localStorage.removeItem('discountName');
+            localStorage.removeItem('discountCode');
+        }
+        
         navigate('/checkout');
     }
 
@@ -315,19 +429,84 @@ function Cart() {
                         </div>
                     </div>
                     <div className={cx('col4')}>
+                        <div className={cx('discountSection')}>
+                            <h3>Mã giảm giá</h3>
+                            <div className={cx('couponForm')}>
+                                <input 
+                                    type="text" 
+                                    placeholder="Nhập mã giảm giá" 
+                                    value={couponCode}
+                                    onChange={(e) => setCouponCode(e.target.value)}
+                                    disabled={isApplying || appliedDiscount}
+                                    className={cx('couponInput')}
+                                />
+                                {appliedDiscount ? (
+                                    <button 
+                                        className={cx('removeCouponBtn')} 
+                                        onClick={handleRemoveCoupon}
+                                        disabled={isApplying}
+                                    >
+                                        <i className="fas fa-times"></i>
+                                    </button>
+                                ) : (
+                                    <button 
+                                        className={cx('applyCouponBtn')} 
+                                        onClick={handleApplyCoupon}
+                                        disabled={isApplying || !couponCode.trim()}
+                                    >
+                                        {isApplying ? 'Đang áp dụng...' : 'Áp dụng'}
+                                    </button>
+                                )}
+                            </div>
+                            
+                            {appliedDiscount && (
+                                <div className={cx('appliedCoupon')}>
+                                    <div className={cx('couponBadge')}>
+                                        <span className={cx('couponCode')}>{appliedDiscount.code}</span>
+                                        <span className={cx('couponName')}>{appliedDiscount.name}</span>
+                                    </div>
+                                    <div className={cx('discountValue')}>
+                                        {appliedDiscount.type === 'percent' 
+                                            ? `- ${appliedDiscount.value}%` 
+                                            : `- ${appliedDiscount.value.toLocaleString('vi-VN')} VND`}
+                                    </div>
+                                </div>
+                            )}
+                            
+                            <div className={cx('suggestedCoupons')}>
+                                <p>Mã giảm giá gợi ý:</p>
+                                <div className={cx('couponList')}>
+                                    <div className={cx('couponItem')} onClick={() => setCouponCode('SALE10')}>
+                                        <span className={cx('couponTag')}>SALE10</span>
+                                        <span className={cx('couponDesc')}>Giảm 10%</span>
+                                    </div>
+                                    <div className={cx('couponItem')} onClick={() => setCouponCode('GIẢM50K')}>
+                                        <span className={cx('couponTag')}>GIẢM50K</span>
+                                        <span className={cx('couponDesc')}>Giảm 50K</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div className={cx('cartSummary')}>
                             <h3>Tổng đơn hàng</h3>
                             <div className={cx('summaryItem')}>
                                 <span>Tạm tính:</span>
                                 <span>{calculateTotal().toLocaleString('vi-VN')} VND</span>
                             </div>
+                            {appliedDiscount && (
+                                <div className={cx('summaryItem', 'discount')}>
+                                    <span>Giảm giá:</span>
+                                    <span>-{calculateDiscount().toLocaleString('vi-VN')} VND</span>
+                                </div>
+                            )}
                             <div className={cx('summaryItem')}>
                                 <span>Phí vận chuyển:</span>
                                 <span>Miễn phí</span>
                             </div>
                             <div className={cx('summaryItem', 'total')}>
                                 <span>Tổng cộng:</span>
-                                <span>{calculateTotal().toLocaleString('vi-VN')} VND</span>
+                                <span>{(appliedDiscount ? calculateFinalTotal() : calculateTotal()).toLocaleString('vi-VN')} VND</span>
                             </div>
                             <button 
                                 className={cx('checkoutBtn')}

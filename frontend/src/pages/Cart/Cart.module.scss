@@ -313,6 +313,161 @@
         }
     }
 
+    .discountSection {
+        background: #fff;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+        
+        h3 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+    }
+    
+    .couponForm {
+        display: flex;
+        margin-bottom: 15px;
+    }
+    
+    .couponInput {
+        flex: 1;
+        height: 44px;
+        padding: 10px 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px 0 0 4px;
+        font-size: 14px;
+        transition: all 0.3s;
+        
+        &:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        
+        &:disabled {
+            background-color: #f7f7f7;
+            cursor: not-allowed;
+        }
+    }
+    
+    .applyCouponBtn, .removeCouponBtn {
+        height: 44px;
+        padding: 0 15px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 0 4px 4px 0;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        
+        &:hover {
+            background-color: #0056b3;
+        }
+        
+        &:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    }
+    
+    .removeCouponBtn {
+        background-color: #dc3545;
+        
+        &:hover {
+            background-color: #c82333;
+        }
+    }
+    
+    .appliedCoupon {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #f8f9fa;
+        border: 1px dashed #28a745;
+        border-radius: 4px;
+        padding: 12px 15px;
+        margin-bottom: 15px;
+    }
+    
+    .couponBadge {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .couponCode {
+        font-weight: 600;
+        color: #28a745;
+        font-size: 16px;
+    }
+    
+    .couponName {
+        font-size: 13px;
+        color: #666;
+        margin-top: 2px;
+    }
+    
+    .discountValue {
+        font-weight: 600;
+        color: #28a745;
+        font-size: 16px;
+    }
+    
+    .suggestedCoupons {
+        margin-top: 20px;
+        
+        p {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+    }
+    
+    .couponList {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .couponItem {
+        display: flex;
+        flex-direction: column;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: 1px dashed #adb5bd;
+        border-radius: 6px;
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+        
+        &:hover {
+            border-color: #007bff;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        }
+    }
+    
+    .couponTag {
+        font-weight: 600;
+        color: #343a40;
+        font-size: 14px;
+        margin-bottom: 2px;
+    }
+    
+    .couponDesc {
+        font-size: 12px;
+        color: #6c757d;
+    }
+    
+    .summaryItem {
+        &.discount {
+            color: #28a745;
+            font-weight: 500;
+        }
+    }
+
     .summaryItem {
         display: flex;
         justify-content: space-between;
@@ -364,7 +519,7 @@
             padding: 25px;
         }
         
-        .cartSummary {
+        .cartSummary, .discountSection {
             padding: 25px;
         }
     }
@@ -388,7 +543,7 @@
             margin-right: 15px;
         }
         
-        .cartItems h2, .emptyCartContent h2 {
+        .cartItems h2, .emptyCartContent h2, .discountSection h3 {
             font-size: 22px;
             margin-bottom: 25px;
         }
@@ -403,9 +558,13 @@
             margin-bottom: 8px;
         }
         
-        .checkoutBtn {
+        .checkoutBtn, .applyCouponBtn, .removeCouponBtn {
             padding: 12px;
             font-size: 15px;
+        }
+        
+        .couponInput {
+            height: 42px;
         }
     }
 }
@@ -428,9 +587,22 @@
             margin-top: 20px;
         }
 
-        .cartSummary {
+        .cartSummary, .discountSection {
             position: static;
             padding: 20px;
+        }
+        
+        .discountSection {
+            border-radius: 0;
+            margin-bottom: 10px;
+        }
+        
+        .couponList {
+            gap: 8px;
+        }
+        
+        .couponItem {
+            padding: 6px 10px;
         }
         
         .cartItems {
