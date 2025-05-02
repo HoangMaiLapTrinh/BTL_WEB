@@ -140,7 +140,8 @@ const Checkout = () => {
             const discount = parseInt(localStorage.getItem('discountAmount')) || 0;
             const orderData = {
                 ...formData,
-                discount: discount
+                discount: discount,
+                calculatedTotal: cartTotal - discount + shippingAmount // Gửi tổng tiền đã tính toán
             };
             
             const response = await axios.post(
@@ -159,7 +160,9 @@ const Checkout = () => {
                 // Thêm thông tin giảm giá vào dữ liệu đơn hàng
                 const orderWithDiscount = {
                     ...response.data.order,
-                    discount: discount
+                    discount: discount,
+                    // Ghi đè tổng tiền để đảm bảo tính đúng
+                    totalPrice: cartTotal - discount + shippingAmount
                 };
                 
                 // Thông báo đặt hàng thành công
@@ -285,6 +288,7 @@ const Checkout = () => {
     const taxAmount = 0; // Đã bỏ thuế
     const shippingAmount = 0; // Miễn phí vận chuyển
     const discountAmount = parseInt(localStorage.getItem('discountAmount')) || 0;
+    // Tính đúng tổng tiền: tạm tính - giảm giá + phí vận chuyển
     const totalAmount = cartTotal - discountAmount + shippingAmount;
 
     return (

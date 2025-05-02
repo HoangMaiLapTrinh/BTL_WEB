@@ -30,7 +30,10 @@ const OrderConfirmation = () => {
   const taxPrice = 0; // Không tính thuế
   const shippingPrice = orderDetails.shippingPrice || 0;
   const discount = orderDetails.discount || 0;
-  const totalPrice = orderDetails.totalPrice;
+  // Tính tổng tiền đúng: tạm tính - giảm giá + phí vận chuyển
+  const calculateTotal = subtotal - discount + shippingPrice;
+  // Sử dụng giá trị tính toán thay vì lấy từ orderDetails
+  const totalPrice = calculateTotal;
   
   // Xử lý gửi email xác nhận đơn hàng
   const handleSendEmailConfirmation = async () => {
@@ -145,7 +148,7 @@ const OrderConfirmation = () => {
                 <span>Tạm tính:</span>
                 <span>{subtotal.toLocaleString('vi-VN')} VND</span>
               </div>
-              {orderDetails.discount > 0 && (
+              {discount > 0 && (
                 <div className={cx('summaryItem', 'discount')}>
                   <span>Giảm giá:</span>
                   <span>-{discount.toLocaleString('vi-VN')} VND</span>
