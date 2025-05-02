@@ -185,6 +185,15 @@
         font-weight: 600;
         color: #333;
       }
+      
+      &.discount {
+        color: #28a745;
+        font-weight: 500;
+        
+        span:last-child {
+          color: #28a745;
+        }
+      }
     }
   }
 

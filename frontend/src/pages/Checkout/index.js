@@ -135,9 +135,17 @@ const Checkout = () => {
         setIsLoading(true);
         try {
             const token = localStorage.getItem('token');
+            
+            // Lấy thông tin giảm giá từ localStorage nếu có
+            const discount = parseInt(localStorage.getItem('discountAmount')) || 0;
+            const orderData = {
+                ...formData,
+                discount: discount
+            };
+            
             const response = await axios.post(
                 `${API_URL}/cart/checkout`,
-                formData,
+                orderData,
                 {
                     headers: { 
                         Authorization: `Bearer ${token}`,
@@ -148,6 +156,12 @@ const Checkout = () => {
             );
             
             if (response.data.success) {
+                // Thêm thông tin giảm giá vào dữ liệu đơn hàng
+                const orderWithDiscount = {
+                    ...response.data.order,
+                    discount: discount
+                };
+                
                 // Thông báo đặt hàng thành công
                 showToast({
                     title: "Thành công",
@@ -159,10 +173,18 @@ const Checkout = () => {
                 // Kích hoạt sự kiện cập nhật số lượng giỏ hàng trên badge
                 window.dispatchEvent(new Event('cart-updated'));
                 
+                // Xóa thông tin giảm giá khỏi localStorage
+                localStorage.removeItem('discount');
+                localStorage.removeItem('discountAmount');
+                localStorage.removeItem('discountType');
+                localStorage.removeItem('discountValue');
+                localStorage.removeItem('discountName');
+                localStorage.removeItem('discountCode');
+                
                 // Chuyển đến trang xác nhận đơn hàng
                 navigate('/order-confirmation', { 
                     state: { 
-                        orderDetails: response.data.order,
+                        orderDetails: orderWithDiscount,
                         success: true 
                     } 
                 });
