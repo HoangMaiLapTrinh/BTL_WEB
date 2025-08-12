@@ -9,13 +9,27 @@ const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(cookieParser());
 
-// Cấu hình CORS
+// Cấu hình CORS (cho phép Cloudflare Pages và local)
+const allowedOrigins = [
+    'http://localhost:8080',
+    'http://localhost:3000',
+    'https://team2hand.pages.dev',
+    process.env.FRONTEND_URL // có thể đặt domain tuỳ chỉnh tại Render env
+].filter(Boolean);
+
 app.use(cors({
-    origin: ['https://frontend-pqab.onrender.com','http://localhost:8080', 'http://localhost:3000'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true); // cho phép tools/health-check không có origin
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        return callback(new Error('Not allowed by CORS'));
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
+
+// Xử lý preflight cho tất cả route
+app.options('*', cors());
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
